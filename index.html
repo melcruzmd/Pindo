@@ -1,0 +1,2631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sambung — Bahasa Gaul ↔ Tagalog Kalye</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT@9..144,300..900,0..100&family=DM+Sans:opsz,wght@9..40,300..700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* ============================================================
+     SAMBUNG — A bilateral language learning companion
+     Bahasa Gaul (Jakarta Indonesian) ↔ Tagalog Kalye (Manila)
+     ============================================================ */
+  
+  :root {
+    /* Warm editorial palette */
+    --bg: #FBF7F0;
+    --bg-deeper: #F3ECDC;
+    --surface: #FFFEFB;
+    --surface-warm: #F8F0DE;
+    --ink: #1F1A14;
+    --ink-soft: #5A5046;
+    --ink-faint: #8C8275;
+    --line: #E5DCC8;
+    --line-soft: #EFE8D8;
+    
+    /* Accent for cognates - saffron/turmeric */
+    --cognate: #C8932B;
+    --cognate-bg: #FBEFD0;
+    --cognate-line: #E8C887;
+    
+    /* Warning for false friends - brick */
+    --warning: #A5483C;
+    --warning-bg: #F5DDD8;
+    --warning-line: #DCA59A;
+    
+    /* Mode accents */
+    --mode-id: #8B5A2B;       /* cinnamon - Indonesian */
+    --mode-id-soft: #C49264;
+    --mode-id-bg: #F3E4D0;
+    --mode-tg: #3D5A80;       /* indigo - Tagalog */
+    --mode-tg-soft: #7A93B4;
+    --mode-tg-bg: #DEE5F0;
+    
+    /* Type */
+    --serif: 'Fraunces', 'Times New Roman', serif;
+    --sans: 'DM Sans', system-ui, sans-serif;
+    --mono: 'JetBrains Mono', monospace;
+    
+    /* Active mode color (set by JS) */
+    --mode: var(--mode-id);
+    --mode-soft: var(--mode-id-soft);
+    --mode-bg: var(--mode-id-bg);
+  }
+  
+  body[data-mode="tg"] {
+    --mode: var(--mode-tg);
+    --mode-soft: var(--mode-tg-soft);
+    --mode-bg: var(--mode-tg-bg);
+  }
+  
+  *, *::before, *::after { box-sizing: border-box; }
+  
+  html { -webkit-text-size-adjust: 100%; }
+  
+  body {
+    margin: 0;
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.65;
+    color: var(--ink);
+    background: var(--bg);
+    background-image: 
+      radial-gradient(at 15% 20%, rgba(200,147,43,0.04) 0%, transparent 50%),
+      radial-gradient(at 85% 80%, rgba(61,90,128,0.04) 0%, transparent 50%);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+  
+  /* paper grain */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.4;
+    mix-blend-mode: multiply;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 0.85 0 0 0 0 0.78 0 0 0 0 0.65 0 0 0 0.06 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    z-index: 0;
+  }
+  
+  #app { position: relative; z-index: 1; }
+  
+  /* ============================================================
+     LANDING SCREEN
+     ============================================================ */
+  
+  .landing {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 4rem 1.5rem;
+    text-align: center;
+  }
+  
+  .landing-mark {
+    font-family: var(--serif);
+    font-weight: 300;
+    font-size: clamp(3rem, 9vw, 6.5rem);
+    line-height: 0.95;
+    letter-spacing: -0.04em;
+    margin: 0 0 0.5rem;
+    color: var(--ink);
+    font-variation-settings: 'opsz' 144, 'SOFT' 50;
+  }
+  
+  .landing-mark em {
+    font-style: italic;
+    font-variation-settings: 'opsz' 144, 'SOFT' 100;
+    color: var(--cognate);
+  }
+  
+  .landing-tagline {
+    font-family: var(--serif);
+    font-weight: 300;
+    font-style: italic;
+    font-size: clamp(1rem, 2.5vw, 1.4rem);
+    color: var(--ink-soft);
+    margin: 0 0 2.5rem;
+    letter-spacing: 0.01em;
+  }
+  
+  .landing-prompt {
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.22em;
+    color: var(--ink-faint);
+    margin: 0 0 2rem;
+    font-weight: 500;
+  }
+  
+  .lang-cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    width: 100%;
+    max-width: 720px;
+    margin: 0 0 3rem;
+  }
+  
+  @media (max-width: 640px) {
+    .lang-cards { grid-template-columns: 1fr; }
+  }
+  
+  .lang-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 2rem 1.75rem;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    font-family: inherit;
+    color: inherit;
+  }
+  
+  .lang-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, var(--accent) 0%, transparent 60%);
+    opacity: 0;
+    transition: opacity 0.4s;
+    pointer-events: none;
+  }
+  
+  .lang-card:hover {
+    transform: translateY(-3px);
+    border-color: var(--accent);
+    box-shadow: 0 12px 32px -16px var(--accent);
+  }
+  
+  .lang-card:hover::before { opacity: 0.06; }
+  
+  .lang-card[data-lang="id"] { --accent: var(--mode-id); }
+  .lang-card[data-lang="tg"] { --accent: var(--mode-tg); }
+  
+  .lang-card-tag {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: var(--accent);
+    font-weight: 500;
+    margin: 0 0 0.5rem;
+  }
+  
+  .lang-card-title {
+    font-family: var(--serif);
+    font-weight: 400;
+    font-size: 1.85rem;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    margin: 0 0 0.25rem;
+    font-variation-settings: 'opsz' 60;
+  }
+  
+  .lang-card-sub {
+    font-family: var(--serif);
+    font-style: italic;
+    font-weight: 300;
+    font-size: 1.05rem;
+    color: var(--ink-soft);
+    margin: 0 0 1rem;
+  }
+  
+  .lang-card-desc {
+    font-size: 0.92rem;
+    color: var(--ink-soft);
+    line-height: 1.55;
+    margin: 0;
+  }
+  
+  .landing-hint {
+    max-width: 540px;
+    padding: 1.25rem 1.5rem;
+    background: var(--surface-warm);
+    border-left: 2px solid var(--cognate);
+    border-radius: 2px;
+    font-size: 0.88rem;
+    color: var(--ink-soft);
+    text-align: left;
+    line-height: 1.55;
+  }
+  
+  .landing-hint strong {
+    color: var(--ink);
+    font-weight: 500;
+  }
+  
+  /* ============================================================
+     LEARNER MAIN APP
+     ============================================================ */
+  
+  .learner { display: none; }
+  body[data-state="learner"] .learner { display: block; }
+  body[data-state="learner"] .landing { display: none; }
+  
+  /* Header */
+  .top-bar {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: rgba(251, 247, 240, 0.92);
+    backdrop-filter: saturate(150%) blur(10px);
+    -webkit-backdrop-filter: saturate(150%) blur(10px);
+    border-bottom: 1px solid var(--line);
+  }
+  
+  .top-bar-inner {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 0.85rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+  
+  .brand {
+    font-family: var(--serif);
+    font-weight: 400;
+    font-size: 1.4rem;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+    cursor: pointer;
+    background: none;
+    border: none;
+    padding: 0;
+    font-variation-settings: 'opsz' 60, 'SOFT' 30;
+  }
+  
+  .brand em {
+    font-style: italic;
+    color: var(--cognate);
+  }
+  
+  .top-bar-right {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  
+  .mode-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0.85rem;
+    background: var(--mode-bg);
+    border: 1px solid var(--mode-soft);
+    border-radius: 999px;
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--mode);
+    font-weight: 500;
+  }
+  
+  .mode-pill::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--mode);
+  }
+  
+  .switch-btn {
+    background: transparent;
+    border: 1px solid var(--line);
+    color: var(--ink-soft);
+    font-family: var(--sans);
+    font-size: 0.78rem;
+    padding: 0.4rem 0.85rem;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  
+  .switch-btn:hover {
+    background: var(--surface);
+    color: var(--ink);
+    border-color: var(--ink-faint);
+  }
+  
+  /* Chapter nav strip */
+  .chap-strip {
+    background: var(--surface);
+    border-bottom: 1px solid var(--line);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .chap-strip-inner {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+    display: flex;
+    gap: 0;
+    min-width: max-content;
+  }
+  
+  .chap-btn {
+    background: none;
+    border: none;
+    padding: 1rem 1.1rem;
+    font-family: var(--sans);
+    font-size: 0.85rem;
+    color: var(--ink-faint);
+    cursor: pointer;
+    position: relative;
+    white-space: nowrap;
+    transition: color 0.2s;
+    font-weight: 500;
+  }
+  
+  .chap-btn-num {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    margin-right: 0.5rem;
+    opacity: 0.6;
+  }
+  
+  .chap-btn:hover { color: var(--ink); }
+  
+  .chap-btn.active {
+    color: var(--mode);
+  }
+  
+  .chap-btn.active::after {
+    content: '';
+    position: absolute;
+    left: 1.1rem;
+    right: 1.1rem;
+    bottom: 0;
+    height: 2px;
+    background: var(--mode);
+  }
+  
+  /* Tab nav */
+  .tab-nav {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 1.5rem 1.5rem 0;
+    display: flex;
+    gap: 0.25rem;
+    border-bottom: 1px solid var(--line);
+  }
+  
+  .tab-btn {
+    background: none;
+    border: none;
+    padding: 0.75rem 1.25rem;
+    font-family: var(--sans);
+    font-size: 0.9rem;
+    color: var(--ink-soft);
+    cursor: pointer;
+    position: relative;
+    transition: color 0.2s;
+    font-weight: 500;
+    border-radius: 4px 4px 0 0;
+  }
+  
+  .tab-btn:hover { color: var(--ink); background: var(--surface); }
+  
+  .tab-btn.active {
+    color: var(--ink);
+    background: var(--surface);
+  }
+  
+  .tab-btn.active::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -1px;
+    height: 2px;
+    background: var(--mode);
+  }
+  
+  /* Content area */
+  .content {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 2.5rem 1.5rem 6rem;
+  }
+  
+  .reader {
+    max-width: 720px;
+    margin: 0 auto;
+  }
+  
+  /* Lesson typography */
+  .chap-eyebrow {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.22em;
+    color: var(--mode);
+    margin: 0 0 0.75rem;
+    font-weight: 500;
+  }
+  
+  .chap-title {
+    font-family: var(--serif);
+    font-weight: 300;
+    font-size: clamp(2rem, 5vw, 3.2rem);
+    line-height: 1.05;
+    letter-spacing: -0.025em;
+    margin: 0 0 0.5rem;
+    color: var(--ink);
+    font-variation-settings: 'opsz' 144, 'SOFT' 50;
+  }
+  
+  .chap-title em {
+    font-style: italic;
+    font-variation-settings: 'opsz' 144, 'SOFT' 100;
+    color: var(--mode);
+  }
+  
+  .chap-subtitle {
+    font-family: var(--serif);
+    font-style: italic;
+    font-weight: 300;
+    font-size: 1.2rem;
+    color: var(--ink-soft);
+    margin: 0 0 3rem;
+    line-height: 1.4;
+  }
+  
+  .reader p {
+    font-size: 1.05rem;
+    line-height: 1.7;
+    margin: 0 0 1.25rem;
+    color: var(--ink);
+  }
+  
+  .reader h3 {
+    font-family: var(--serif);
+    font-weight: 400;
+    font-size: 1.55rem;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+    margin: 2.5rem 0 0.85rem;
+    font-variation-settings: 'opsz' 60;
+  }
+  
+  .reader h4 {
+    font-family: var(--sans);
+    font-weight: 600;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: var(--mode);
+    margin: 2rem 0 0.6rem;
+  }
+  
+  .reader ul {
+    margin: 0 0 1.25rem;
+    padding-left: 1.25rem;
+  }
+  
+  .reader li {
+    margin-bottom: 0.4rem;
+    line-height: 1.7;
+  }
+  
+  /* Inline markup: cognates and false friends */
+  .cognate {
+    background: var(--cognate-bg);
+    border-bottom: 1px dotted var(--cognate);
+    padding: 0 0.15em;
+    cursor: pointer;
+    transition: background 0.15s;
+    border-radius: 1px;
+    font-weight: 500;
+  }
+  
+  .cognate:hover {
+    background: var(--cognate-line);
+  }
+  
+  .false-friend {
+    background: var(--warning-bg);
+    border-bottom: 1px dotted var(--warning);
+    padding: 0 0.15em;
+    cursor: pointer;
+    transition: background 0.15s;
+    border-radius: 1px;
+    font-weight: 500;
+  }
+  
+  .false-friend:hover { background: var(--warning-line); }
+  
+  .ex {
+    font-style: italic;
+    color: var(--ink-soft);
+    font-family: var(--serif);
+  }
+  
+  /* Callouts */
+  .callout {
+    margin: 1.5rem 0;
+    padding: 1rem 1.25rem;
+    background: var(--surface-warm);
+    border-left: 3px solid var(--mode);
+    border-radius: 0 3px 3px 0;
+    font-size: 0.95rem;
+    line-height: 1.6;
+  }
+  
+  .callout.warn {
+    background: var(--warning-bg);
+    border-left-color: var(--warning);
+  }
+  
+  .callout.cognate-callout {
+    background: var(--cognate-bg);
+    border-left-color: var(--cognate);
+  }
+  
+  .callout-label {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    font-weight: 500;
+    margin-bottom: 0.4rem;
+    color: var(--mode);
+  }
+  
+  .callout.warn .callout-label { color: var(--warning); }
+  .callout.cognate-callout .callout-label { color: var(--cognate); }
+  
+  /* Tables */
+  .reader table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1.5rem 0;
+    font-size: 0.93rem;
+    background: var(--surface);
+  }
+  
+  .reader th {
+    font-family: var(--sans);
+    font-weight: 600;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--ink-soft);
+    text-align: left;
+    padding: 0.7rem 0.85rem;
+    border-bottom: 2px solid var(--line);
+    background: var(--surface-warm);
+  }
+  
+  .reader td {
+    padding: 0.6rem 0.85rem;
+    border-bottom: 1px solid var(--line-soft);
+    vertical-align: top;
+  }
+  
+  .reader tr:last-child td { border-bottom: none; }
+  
+  .reader td:first-child {
+    font-weight: 500;
+    color: var(--mode);
+  }
+  
+  /* ============================================================
+     POPOVER (cognate / false friend)
+     ============================================================ */
+  
+  .popover {
+    position: absolute;
+    z-index: 100;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 1rem 1.1rem;
+    width: 320px;
+    box-shadow: 0 18px 40px -12px rgba(31, 26, 20, 0.18);
+    font-size: 0.9rem;
+    line-height: 1.5;
+    opacity: 0;
+    transform: translateY(-6px);
+    transition: opacity 0.2s, transform 0.2s;
+    pointer-events: none;
+  }
+  
+  .popover.visible {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+  
+  .popover-tag {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+  }
+  
+  .popover.cognate-popover { border-top: 3px solid var(--cognate); }
+  .popover.cognate-popover .popover-tag { color: var(--cognate); }
+  .popover.warn-popover { border-top: 3px solid var(--warning); }
+  .popover.warn-popover .popover-tag { color: var(--warning); }
+  
+  .popover-pair {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+    margin: 0.5rem 0;
+  }
+  
+  .popover-side {
+    padding: 0.5rem 0.6rem;
+    border-radius: 2px;
+    background: var(--surface-warm);
+  }
+  
+  .popover-side-label {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--ink-faint);
+    margin-bottom: 0.2rem;
+    font-weight: 500;
+  }
+  
+  .popover-word {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: 1.05rem;
+    color: var(--ink);
+  }
+  
+  .popover-meaning {
+    margin-top: 0.6rem;
+    color: var(--ink-soft);
+    font-size: 0.88rem;
+  }
+  
+  /* ============================================================
+     VOCAB / FLASHCARDS TAB
+     ============================================================ */
+  
+  .vocab-page { max-width: 720px; margin: 0 auto; }
+  
+  .vocab-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  
+  .vocab-title {
+    font-family: var(--serif);
+    font-weight: 400;
+    font-size: 1.8rem;
+    color: var(--ink);
+    margin: 0;
+    letter-spacing: -0.02em;
+    font-variation-settings: 'opsz' 60;
+  }
+  
+  .vocab-counter {
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    color: var(--ink-faint);
+  }
+  
+  .flashcard-stage {
+    display: flex;
+    justify-content: center;
+    margin: 2rem 0;
+  }
+  
+  .flashcard {
+    width: 100%;
+    max-width: 480px;
+    aspect-ratio: 4/3;
+    perspective: 1200px;
+    cursor: pointer;
+  }
+  
+  .flashcard-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+    transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  
+  .flashcard.flipped .flashcard-inner {
+    transform: rotateY(180deg);
+  }
+  
+  .flashcard-face {
+    position: absolute;
+    inset: 0;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    box-shadow: 0 4px 16px -8px rgba(31, 26, 20, 0.1);
+  }
+  
+  .flashcard-face.back {
+    transform: rotateY(180deg);
+    background: var(--surface-warm);
+  }
+  
+  .fc-tag {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: var(--ink-faint);
+    margin-bottom: 0.75rem;
+    font-weight: 500;
+  }
+  
+  .fc-word {
+    font-family: var(--serif);
+    font-weight: 400;
+    font-size: clamp(2rem, 6vw, 3rem);
+    line-height: 1.1;
+    color: var(--ink);
+    margin: 0 0 0.5rem;
+    letter-spacing: -0.02em;
+    font-variation-settings: 'opsz' 144;
+  }
+  
+  .fc-cognate-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-top: 0.5rem;
+    padding: 0.3rem 0.7rem;
+    background: var(--cognate-bg);
+    border: 1px solid var(--cognate-line);
+    color: var(--cognate);
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    border-radius: 999px;
+    font-weight: 500;
+  }
+  
+  .fc-warn-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-top: 0.5rem;
+    padding: 0.3rem 0.7rem;
+    background: var(--warning-bg);
+    border: 1px solid var(--warning-line);
+    color: var(--warning);
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    border-radius: 999px;
+    font-weight: 500;
+  }
+  
+  .fc-meaning {
+    font-family: var(--sans);
+    font-size: 1.15rem;
+    color: var(--ink);
+    margin: 0 0 0.5rem;
+    line-height: 1.4;
+  }
+  
+  .fc-counterpart {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 1.1rem;
+    color: var(--mode);
+  }
+  
+  .fc-note {
+    font-size: 0.85rem;
+    color: var(--ink-soft);
+    margin-top: 0.85rem;
+    line-height: 1.5;
+    max-width: 360px;
+  }
+  
+  .flashcard-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1.5rem;
+    margin-top: 2rem;
+  }
+  
+  .fc-btn {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 0.9rem;
+    font-weight: 500;
+    padding: 0.65rem 1.5rem;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  
+  .fc-btn:hover:not(:disabled) {
+    border-color: var(--mode);
+    color: var(--mode);
+    transform: translateY(-1px);
+  }
+  
+  .fc-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+  
+  .fc-progress {
+    font-family: var(--mono);
+    font-size: 0.85rem;
+    color: var(--ink-soft);
+    min-width: 60px;
+    text-align: center;
+  }
+  
+  .fc-hint {
+    text-align: center;
+    font-size: 0.85rem;
+    color: var(--ink-faint);
+    margin-top: 0.75rem;
+    font-style: italic;
+  }
+  
+  /* ============================================================
+     PARTICLES TAB
+     ============================================================ */
+  
+  .particles-page { max-width: 980px; margin: 0 auto; }
+  
+  .particles-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  
+  .particles-table th {
+    font-family: var(--sans);
+    font-weight: 600;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--ink);
+    padding: 1rem 1rem;
+    background: var(--surface-warm);
+    border-bottom: 1px solid var(--line);
+    text-align: left;
+  }
+  
+  .particles-table th.id-col { color: var(--mode-id); }
+  .particles-table th.tg-col { color: var(--mode-tg); }
+  
+  .particles-table td {
+    padding: 0.85rem 1rem;
+    border-bottom: 1px solid var(--line-soft);
+    vertical-align: top;
+    font-size: 0.92rem;
+  }
+  
+  .particles-table tr:last-child td { border-bottom: none; }
+  
+  .particles-table tr:hover td { background: var(--surface-warm); }
+  
+  .particle-word {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: 1.05rem;
+    color: var(--ink);
+  }
+  
+  .particle-fn {
+    color: var(--ink-soft);
+    font-size: 0.88rem;
+  }
+  
+  .particle-ex {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 0.88rem;
+    color: var(--ink-soft);
+    line-height: 1.4;
+  }
+  
+  .particles-intro {
+    margin-bottom: 1.75rem;
+    color: var(--ink-soft);
+    font-size: 1rem;
+    line-height: 1.6;
+  }
+  
+  /* ============================================================
+     DIALOGUE TAB
+     ============================================================ */
+  
+  .dialogue-page { max-width: 760px; margin: 0 auto; }
+  
+  .dialogue-picker {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0.75rem;
+    margin-bottom: 2rem;
+  }
+  
+  .dialogue-pick-btn {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 1rem;
+    text-align: left;
+    cursor: pointer;
+    font-family: var(--sans);
+    color: var(--ink);
+    transition: all 0.2s;
+  }
+  
+  .dialogue-pick-btn:hover {
+    border-color: var(--mode);
+    transform: translateY(-2px);
+  }
+  
+  .dialogue-pick-btn.active {
+    border-color: var(--mode);
+    background: var(--mode-bg);
+  }
+  
+  .dialogue-pick-num {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    color: var(--ink-faint);
+    margin-bottom: 0.3rem;
+    letter-spacing: 0.12em;
+  }
+  
+  .dialogue-pick-title {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: 1.05rem;
+    color: var(--ink);
+    margin: 0;
+  }
+  
+  .role-bar {
+    display: flex;
+    background: var(--surface-warm);
+    border-radius: 999px;
+    padding: 0.25rem;
+    margin-bottom: 2rem;
+    width: fit-content;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  
+  .role-btn {
+    background: none;
+    border: none;
+    padding: 0.5rem 1.25rem;
+    font-family: var(--sans);
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    cursor: pointer;
+    border-radius: 999px;
+    transition: all 0.2s;
+  }
+  
+  .role-btn.active {
+    background: var(--mode);
+    color: white;
+  }
+  
+  .role-bar-prompt {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: var(--ink-faint);
+    text-align: center;
+    margin-bottom: 0.5rem;
+  }
+  
+  .dialogue-script {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 1.5rem;
+  }
+  
+  .dialogue-line {
+    display: flex;
+    gap: 1rem;
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--line-soft);
+    transition: background 0.2s;
+    border-radius: 3px;
+  }
+  
+  .dialogue-line:last-child { border-bottom: none; }
+  
+  .dialogue-line.your-turn {
+    background: var(--mode-bg);
+    margin: 0 -0.75rem;
+    padding: 1rem 0.75rem;
+    border-bottom: 1px solid var(--mode-soft);
+  }
+  
+  .dialogue-line-speaker {
+    flex-shrink: 0;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: var(--surface-warm);
+    border: 1px solid var(--line);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--mono);
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--ink-soft);
+  }
+  
+  .dialogue-line.your-turn .dialogue-line-speaker {
+    background: var(--mode);
+    color: white;
+    border-color: var(--mode);
+  }
+  
+  .dialogue-line-content { flex: 1; min-width: 0; }
+  
+  .dialogue-line-role {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--ink-faint);
+    margin-bottom: 0.3rem;
+    font-weight: 500;
+  }
+  
+  .dialogue-line-target {
+    font-family: var(--serif);
+    font-size: 1.1rem;
+    color: var(--ink);
+    margin: 0 0 0.35rem;
+    line-height: 1.45;
+    font-variation-settings: 'opsz' 60;
+  }
+  
+  .dialogue-line.your-turn .dialogue-line-target {
+    font-weight: 500;
+  }
+  
+  .dialogue-line-en {
+    font-size: 0.85rem;
+    color: var(--ink-soft);
+    font-style: italic;
+    margin: 0 0 0.25rem;
+  }
+  
+  .dialogue-line-other {
+    font-size: 0.8rem;
+    color: var(--ink-faint);
+    font-family: var(--mono);
+  }
+  
+  .dialogue-tip {
+    margin-top: 1.5rem;
+    padding: 1rem 1.25rem;
+    background: var(--cognate-bg);
+    border-left: 3px solid var(--cognate);
+    border-radius: 0 4px 4px 0;
+    font-size: 0.88rem;
+    color: var(--ink);
+    line-height: 1.55;
+  }
+  
+  /* ============================================================
+     UTILITIES
+     ============================================================ */
+  
+  .fade-in {
+    animation: fadeIn 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb {
+    background: var(--line);
+    border-radius: 999px;
+    border: 2px solid var(--bg);
+  }
+  ::-webkit-scrollbar-thumb:hover { background: var(--ink-faint); }
+  
+  /* Mobile tweaks */
+  @media (max-width: 640px) {
+    .content { padding: 1.5rem 1rem 4rem; }
+    .reader p { font-size: 1rem; }
+    .chap-btn { padding: 0.85rem 0.85rem; font-size: 0.8rem; }
+    .tab-btn { padding: 0.6rem 0.85rem; font-size: 0.85rem; }
+    .top-bar-inner { padding: 0.7rem 1rem; }
+  }
+</style>
+</head>
+<body data-mode="id" data-state="landing">
+
+<div id="app">
+
+<!-- ============================================================
+     LANDING SCREEN
+     ============================================================ -->
+<section class="landing">
+  <h1 class="landing-mark">Sambung<em>·</em></h1>
+  <p class="landing-tagline">A bilateral companion for two sister languages.</p>
+  
+  <p class="landing-prompt">— Pilih bahasa · Pumili ng wika —</p>
+  
+  <div class="lang-cards">
+    <button class="lang-card" data-lang="id" type="button">
+      <div class="lang-card-tag">Bahasa Gaul · Jakarta</div>
+      <h2 class="lang-card-title">Saya mau belajar<br>Bahasa Indonesia</h2>
+      <p class="lang-card-sub">For Tagalog speakers</p>
+      <p class="lang-card-desc">Learn the casual Indonesian spoken in Jakarta — <em>gue, lu, banget, aja</em> — through your Tagalog instincts.</p>
+    </button>
+    
+    <button class="lang-card" data-lang="tg" type="button">
+      <div class="lang-card-tag">Tagalog Kalye · Manila</div>
+      <h2 class="lang-card-title">Mau belajar<br>Bahasa Tagalog</h2>
+      <p class="lang-card-sub">Untuk penutur Indonesia</p>
+      <p class="lang-card-desc">Learn the Taglish spoken in Manila — <em>kasi, naman, di ba, lang</em> — building from your Bahasa Indonesia knowledge.</p>
+    </button>
+  </div>
+  
+  <div class="landing-hint">
+    <strong>Working with a partner on Zoom?</strong> Each of you opens this app on your own device and picks the opposite language. You'll move through matching chapters simultaneously and can role-play the same dialogues — you in Bahasa, your partner in Tagalog.
+  </div>
+</section>
+
+<!-- ============================================================
+     LEARNER (main app, hidden until language selected)
+     ============================================================ -->
+<div class="learner">
+  
+  <header class="top-bar">
+    <div class="top-bar-inner">
+      <button class="brand" id="brand-btn" type="button">Sambung<em>·</em></button>
+      <div class="top-bar-right">
+        <span class="mode-pill" id="mode-pill">Bahasa Gaul</span>
+        <button class="switch-btn" id="switch-btn" type="button">Switch language</button>
+      </div>
+    </div>
+  </header>
+  
+  <nav class="chap-strip">
+    <div class="chap-strip-inner" id="chap-nav"></div>
+  </nav>
+  
+  <nav class="tab-nav">
+    <button class="tab-btn active" data-tab="lesson" type="button">Lesson</button>
+    <button class="tab-btn" data-tab="vocab" type="button">Flashcards</button>
+    <button class="tab-btn" data-tab="particles" type="button">Particles</button>
+    <button class="tab-btn" data-tab="dialogue" type="button">Dialogues</button>
+  </nav>
+  
+  <section class="content" id="content"></section>
+</div>
+
+<!-- Popover for cognates / false friends -->
+<div class="popover" id="popover"></div>
+
+</div>
+
+<script>
+/* ============================================================
+   SAMBUNG - Application logic
+   ============================================================ */
+
+/* ---------- DATA ---------- */
+
+// Vocabulary database. Each item has both language forms + English + status flag.
+// status: 'cognate' | 'false-friend' | 'normal'
+const VOCAB = [
+  // Body / pronouns / basics
+  { id: 'mata', id_w: 'mata', tg_w: 'mata', en: 'eye', status: 'cognate', note: '4,000-year-old shared Austronesian word.' },
+  { id: 'anak', id_w: 'anak', tg_w: 'anak', en: 'child', status: 'cognate', note: 'Identical in both languages.' },
+  { id: 'lima', id_w: 'lima', tg_w: 'lima', en: 'five', status: 'cognate', note: 'Same word, same meaning, since proto-Austronesian.' },
+  { id: 'ikan', id_w: 'ikan', tg_w: 'isda', en: 'fish', status: 'normal' },
+  { id: 'langit', id_w: 'langit', tg_w: 'langit', en: 'sky', status: 'cognate' },
+  { id: 'bulan', id_w: 'bulan', tg_w: 'buwan', en: 'moon / month', status: 'cognate' },
+  { id: 'baru', id_w: 'baru', tg_w: 'bago', en: 'new', status: 'cognate' },
+  { id: 'pintu', id_w: 'pintu', tg_w: 'pinto', en: 'door', status: 'cognate' },
+  { id: 'babi', id_w: 'babi', tg_w: 'baboy', en: 'pig', status: 'cognate' },
+  { id: 'lalaki', id_w: 'laki-laki', tg_w: 'lalaki', en: 'man', status: 'cognate' },
+  { id: 'sakit', id_w: 'sakit', tg_w: 'sakit', en: 'sick / pain', status: 'cognate' },
+  { id: 'takut', id_w: 'takut', tg_w: 'takot', en: 'afraid', status: 'cognate' },
+  { id: 'ingat', id_w: 'ingat', tg_w: 'ingat', en: 'remember / be careful', status: 'cognate' },
+  { id: 'bilang', id_w: 'bilang', tg_w: 'bilang', en: 'to say / to count', status: 'cognate', note: 'Same root, same dual meaning, since proto-Austronesian.' },
+  { id: 'minum', id_w: 'minum', tg_w: 'inom', en: 'to drink', status: 'cognate' },
+  { id: 'tidur', id_w: 'tidur', tg_w: 'tulog', en: 'to sleep', status: 'cognate' },
+  { id: 'bangun', id_w: 'bangun', tg_w: 'bangon', en: 'to get up', status: 'cognate' },
+  { id: 'datang', id_w: 'datang', tg_w: 'dating', en: 'to come / arrive', status: 'cognate' },
+  { id: 'mati', id_w: 'mati', tg_w: 'patay', en: 'dead', status: 'cognate', note: 'Tagalog kept the m→p shift seen in many Philippine languages.' },
+  { id: 'mahal_money', id_w: 'mahal', tg_w: 'mahal', en: 'expensive', status: 'false-friend', note: 'Same form, but in TAGALOG mahal also means "beloved/love." Saying "Mahal kita" = "I love you," NOT "you are expensive."' },
+  { id: 'murah', id_w: 'murah', tg_w: 'mura', en: 'cheap', status: 'cognate' },
+  { id: 'lama', id_w: 'lama', tg_w: 'luma', en: 'old (of things)', status: 'cognate' },
+  
+  // The big false friend - kita
+  { id: 'kita_we', id_w: 'kita', tg_w: 'tayo', en: 'we (inclusive)', status: 'false-friend', note: 'CRITICAL: Indonesian "kita" = we (you+me). Tagalog "kita" is a SPECIAL pronoun meaning "I-to-you" (used in Mahal kita = I love you). For "we inclusive" in Tagalog, use "tayo".' },
+  { id: 'kami', id_w: 'kami', tg_w: 'kami', en: 'we (exclusive)', status: 'cognate' },
+  
+  // Pronouns
+  { id: 'aku', id_w: 'aku / gue', tg_w: 'ako', en: 'I', status: 'cognate', note: 'Indonesian "aku" and Tagalog "ako" share the same Austronesian root.' },
+  { id: 'dia', id_w: 'dia', tg_w: 'siya', en: 'he / she (genderless)', status: 'normal', note: 'Both languages have one genderless 3rd-person pronoun. Both find English\'s he/she split unnatural.' },
+  { id: 'kamu', id_w: 'kamu / lu', tg_w: 'ikaw / ka', en: 'you', status: 'normal' },
+  
+  // Demonstratives
+  { id: 'ini', id_w: 'ini', tg_w: 'ito', en: 'this', status: 'normal' },
+  { id: 'itu', id_w: 'itu', tg_w: 'iyan / iyon', en: 'that', status: 'normal' },
+  
+  // bukas - false friend
+  { id: 'bukas', id_w: 'besok', tg_w: 'bukas', en: 'tomorrow', status: 'false-friend', note: 'WARNING: Tagalog "bukas" = tomorrow. But Indonesian "buka" = open! And there\'s no Indonesian word "bukas". The Tagalog "bukas" can ALSO mean "open." Filipinos disambiguate by stress.' },
+  
+  // Common everyday
+  { id: 'rumah', id_w: 'rumah', tg_w: 'bahay', en: 'house', status: 'normal' },
+  { id: 'kanin', id_w: 'nasi', tg_w: 'kanin', en: 'rice (cooked)', status: 'normal' },
+  { id: 'beras', id_w: 'beras', tg_w: 'bigas', en: 'rice (uncooked)', status: 'cognate' },
+  { id: 'air', id_w: 'air', tg_w: 'tubig', en: 'water', status: 'normal' },
+  { id: 'kopi', id_w: 'kopi', tg_w: 'kape', en: 'coffee', status: 'cognate', note: 'Both from same European loan, but Tagalog routed through Spanish "café".' },
+  
+  // Verbs
+  { id: 'makan', id_w: 'makan', tg_w: 'kumain (kain)', en: 'to eat', status: 'normal', note: 'Tagalog conjugates: kumain (ate), kumakain (eating), kakain (will eat).' },
+  { id: 'beli', id_w: 'beli', tg_w: 'bumili (bili)', en: 'to buy', status: 'normal' },
+  { id: 'pulang', id_w: 'pulang', tg_w: 'umuwi (uwi)', en: 'to go home', status: 'normal' },
+  { id: 'pergi', id_w: 'pergi', tg_w: 'pumunta', en: 'to go', status: 'normal' },
+  { id: 'lihat', id_w: 'lihat / liat', tg_w: 'tumingin', en: 'to look / see', status: 'normal' },
+  { id: 'baca', id_w: 'baca', tg_w: 'magbasa (basa)', en: 'to read', status: 'normal', note: 'Tagalog "basa" can also mean "wet" - context tells you which.' },
+  { id: 'tulis', id_w: 'tulis', tg_w: 'sumulat (sulat)', en: 'to write', status: 'normal' },
+  
+  // Adjectives
+  { id: 'besar', id_w: 'besar', tg_w: 'malaki', en: 'big', status: 'normal' },
+  { id: 'kecil', id_w: 'kecil', tg_w: 'maliit', en: 'small', status: 'normal' },
+  { id: 'enak', id_w: 'enak', tg_w: 'masarap', en: 'delicious', status: 'normal' },
+  { id: 'panas', id_w: 'panas', tg_w: 'mainit', en: 'hot', status: 'normal' },
+  { id: 'dingin', id_w: 'dingin', tg_w: 'malamig', en: 'cold', status: 'normal' },
+  { id: 'cantik', id_w: 'cantik', tg_w: 'maganda', en: 'beautiful', status: 'normal' },
+  { id: 'lapar', id_w: 'lapar', tg_w: 'gutom', en: 'hungry', status: 'normal' },
+  { id: 'capek', id_w: 'capek', tg_w: 'pagod', en: 'tired', status: 'normal' },
+  
+  // Greetings
+  { id: 'kabar', id_w: 'apa kabar?', tg_w: 'kumusta?', en: 'how are you?', status: 'normal', note: 'Tagalog "kumusta" comes from Spanish "¿cómo está?" — same function, different etymology.' },
+  { id: 'makasih', id_w: 'makasih / terima kasih', tg_w: 'salamat', en: 'thank you', status: 'normal' },
+  { id: 'maaf', id_w: 'maaf', tg_w: 'pasensya / sorry', en: 'sorry', status: 'normal' },
+  
+  // Question words
+  { id: 'apa', id_w: 'apa', tg_w: 'ano', en: 'what', status: 'normal', note: 'Both ask about things. Both start with vowels. Distant Austronesian cousins.' },
+  { id: 'siapa', id_w: 'siapa', tg_w: 'sino', en: 'who', status: 'cognate', note: 'Both start with "s" and ask about people. Same Austronesian root.' },
+  { id: 'kenapa', id_w: 'kenapa', tg_w: 'bakit', en: 'why', status: 'normal' },
+  { id: 'gimana', id_w: 'gimana / bagaimana', tg_w: 'paano', en: 'how', status: 'normal' },
+  { id: 'mana', id_w: 'di mana', tg_w: 'saan', en: 'where', status: 'normal' },
+  { id: 'kapan', id_w: 'kapan', tg_w: 'kailan', en: 'when', status: 'normal' },
+  { id: 'berapa', id_w: 'berapa', tg_w: 'magkano / ilan', en: 'how much / many', status: 'normal' },
+  
+  // Want / can / need
+  { id: 'mau', id_w: 'mau', tg_w: 'gusto', en: 'want / would like', status: 'normal', note: 'Tagalog "gusto" is borrowed from Spanish "gustar." Indonesian "mau" is native Austronesian.' },
+  { id: 'bisa', id_w: 'bisa', tg_w: 'pwede / kaya', en: 'can / able', status: 'normal' },
+  { id: 'butuh', id_w: 'butuh', tg_w: 'kailangan', en: 'need', status: 'normal' },
+];
+
+// Particles - the heart of conversational matching
+const PARTICLES = [
+  { id_w: 'udah', tg_w: 'na', fn: 'already / now', id_ex: 'Udah makan gue.', tg_ex: 'Kumain na ako.', en: "I've already eaten." },
+  { id_w: 'belom', tg_w: 'hindi pa / wala pa', fn: 'not yet', id_ex: 'Belom makan.', tg_ex: 'Hindi pa ako kumain.', en: 'I haven\'t eaten yet.' },
+  { id_w: 'masih', tg_w: 'pa', fn: 'still', id_ex: 'Gue masih kerja.', tg_ex: 'Nagtatrabaho pa ako.', en: "I'm still working." },
+  { id_w: 'aja', tg_w: 'lang', fn: 'just / only', id_ex: 'Ini aja.', tg_ex: 'Ito lang.', en: 'Just this one.' },
+  { id_w: 'dong', tg_w: 'naman', fn: 'friendly insistence ("c\'mon")', id_ex: 'Cepet dong!', tg_ex: 'Bilis naman!', en: 'Hurry up!' },
+  { id_w: 'sih', tg_w: 'kasi / eh / nga', fn: 'mood softener / contrast', id_ex: 'Mahal sih, tapi enak.', tg_ex: 'Mahal nga, masarap naman.', en: "It's expensive, but it's tasty." },
+  { id_w: 'kan', tg_w: 'di ba', fn: 'right? (calls on shared knowledge)', id_ex: 'Mahal banget, kan?', tg_ex: 'Sobrang mahal, di ba?', en: "Super expensive, right?" },
+  { id_w: 'kok', tg_w: 'eh / kasi', fn: 'defensive / explanation', id_ex: 'Aku nggak marah kok.', tg_ex: 'Hindi naman ako galit eh.', en: "I'm not angry, really." },
+  { id_w: 'deh', tg_w: 'na (sometimes) / nga', fn: 'soft suggestion', id_ex: 'Coba deh!', tg_ex: 'Subukan mo nga!', en: 'Just try it!' },
+  { id_w: 'lah', tg_w: 'na / nga', fn: 'finalizing emphasis', id_ex: 'Yaudah lah!', tg_ex: 'Sige na nga!', en: 'Fine, alright then!' },
+  { id_w: 'nih / tuh', tg_w: 'eto / o / ayan', fn: 'here / look', id_ex: 'Nih, gue beliin kopi.', tg_ex: 'Eto, binilhan kita ng kape.', en: 'Here, I bought you coffee.' },
+  { id_w: 'banget', tg_w: 'sobra / talaga / super', fn: 'very / so', id_ex: 'Capek banget gue.', tg_ex: 'Sobrang pagod ako.', en: "I'm so tired." },
+  { id_w: 'kayak', tg_w: 'parang', fn: 'like (similar to)', id_ex: 'Kayak gini, …', tg_ex: 'Parang ganito, …', en: 'Like this, …' },
+  { id_w: 'gini / gitu', tg_w: 'ganito / ganyan / ganun', fn: 'like this / like that', id_ex: 'Jangan gitu dong!', tg_ex: 'Wag ka namang ganyan!', en: "Don't be like that!" },
+  { id_w: 'emang', tg_w: 'nga / talaga', fn: 'indeed / really', id_ex: 'Mahal emang nih.', tg_ex: 'Mahal nga ito.', en: 'This really is expensive.' },
+  { id_w: 'katanya', tg_w: 'daw / raw', fn: 'reportedly / they say', id_ex: 'Katanya ini mahal.', tg_ex: 'Mahal daw ito.', en: 'They say this is expensive.' },
+  { id_w: 'ternyata', tg_w: 'pala', fn: 'turns out / I didn\'t know', id_ex: 'Ternyata lu dokter!', tg_ex: 'Doctor ka pala!', en: "Oh, you're a doctor (didn't know)!" },
+  { id_w: 'mungkin', tg_w: 'siguro', fn: 'maybe', id_ex: 'Mungkin mahal.', tg_ex: 'Siguro mahal.', en: 'Maybe it\'s expensive.' },
+  { id_w: 'kayaknya', tg_w: 'yata / siguro', fn: 'I think', id_ex: 'Kayaknya mahal.', tg_ex: 'Mahal yata.', en: 'I think it\'s expensive.' },
+  { id_w: 'semoga', tg_w: 'sana', fn: 'I hope', id_ex: 'Semoga menang gue.', tg_ex: 'Sana mananalo ako.', en: 'I hope I win.' },
+];
+
+// Dialogues - synced scenarios both learners can role-play
+const DIALOGUES = [
+  {
+    id: 'd1',
+    title_id: 'Di Warung',
+    title_tg: 'Sa Karinderya',
+    title_en: 'At a small eatery',
+    note: 'Both speakers learn the same scene from opposite sides. One of you plays the customer, one plays the server.',
+    lines: [
+      { speaker: 'A', role_id: 'pembeli', role_tg: 'kustomer', role_en: 'customer',
+        id_t: 'Mas, mau pesan dong.',
+        tg_t: 'Kuya, oorder po sana ako.',
+        en: 'Hey, I\'d like to order.' },
+      { speaker: 'B', role_id: 'pelayan', role_tg: 'server', role_en: 'server',
+        id_t: 'Iya, mau pesan apa?',
+        tg_t: 'Sige po, ano po order ninyo?',
+        en: 'Sure, what do you want to order?' },
+      { speaker: 'A', role_id: 'pembeli', role_tg: 'kustomer', role_en: 'customer',
+        id_t: 'Nasi goreng satu, sama es teh manis. Pedasnya sedang aja ya.',
+        tg_t: 'Isang sinangag po, tapos isang iced tea. Wag pong masyadong maanghang.',
+        en: 'One fried rice and one iced tea. Just medium spicy please.' },
+      { speaker: 'B', role_id: 'pelayan', role_tg: 'server', role_en: 'server',
+        id_t: 'Oke. Mau makan di sini atau bungkus?',
+        tg_t: 'Sige po. Dito po kakain o take-out?',
+        en: 'OK. Eat here or take away?' },
+      { speaker: 'A', role_id: 'pembeli', role_tg: 'kustomer', role_en: 'customer',
+        id_t: 'Di sini aja.',
+        tg_t: 'Dito lang po.',
+        en: 'Just here.' },
+      { speaker: 'B', role_id: 'pelayan', role_tg: 'server', role_en: 'server',
+        id_t: 'Bentar ya.',
+        tg_t: 'Sandali lang po.',
+        en: 'Just a moment.' },
+      { speaker: 'A', role_id: 'pembeli', role_tg: 'kustomer', role_en: 'customer',
+        id_t: 'Mas, bayar dong. Berapa semuanya?',
+        tg_t: 'Kuya, bill po. Magkano lahat?',
+        en: 'Hey, the bill please. How much in total?' },
+      { speaker: 'B', role_id: 'pelayan', role_tg: 'server', role_en: 'server',
+        id_t: 'Dua puluh lima ribu.',
+        tg_t: 'Dalawang daan singkwenta po.',
+        en: 'Twenty-five thousand / Two-fifty.' },
+      { speaker: 'A', role_id: 'pembeli', role_tg: 'kustomer', role_en: 'customer',
+        id_t: 'Nih, makasih ya.',
+        tg_t: 'O eto po. Salamat po!',
+        en: 'Here you go, thanks!' }
+    ]
+  },
+  {
+    id: 'd2',
+    title_id: 'Chat sama Teman',
+    title_tg: 'Texting a Friend',
+    title_en: 'Texting a friend',
+    note: 'A casual chat. Notice how natural it sounds when you use particles like aja/lang and dong/naman.',
+    lines: [
+      { speaker: 'A', role_id: 'teman', role_tg: 'kaibigan', role_en: 'friend',
+        id_t: 'Eh, lagi ngapain?',
+        tg_t: 'Uy, anong ginagawa mo?',
+        en: 'Hey, what\'re you doing?' },
+      { speaker: 'B', role_id: 'teman', role_tg: 'kaibigan', role_en: 'friend',
+        id_t: 'Lagi di rumah aja. Bosen banget. Lu?',
+        tg_t: 'Wala, nasa bahay lang. Sobrang boring. Ikaw?',
+        en: 'Just at home. Super bored. You?' },
+      { speaker: 'A', role_id: 'teman', role_tg: 'kaibigan', role_en: 'friend',
+        id_t: 'Sama. Mau jalan-jalan nggak nanti sore?',
+        tg_t: 'Same. Lalabas ka ba mamaya?',
+        en: 'Same. Wanna go out later?' },
+      { speaker: 'B', role_id: 'teman', role_tg: 'kaibigan', role_en: 'friend',
+        id_t: 'Boleh! Ke mana?',
+        tg_t: 'Sige! Saan?',
+        en: 'Sure! Where?' },
+      { speaker: 'A', role_id: 'teman', role_tg: 'kaibigan', role_en: 'friend',
+        id_t: 'Ke mall aja. Gue lagi pengen makan ramen.',
+        tg_t: 'Sa mall na lang. Gusto kong kumain ng ramen eh.',
+        en: 'Just to the mall. I\'m craving ramen.' },
+      { speaker: 'B', role_id: 'teman', role_tg: 'kaibigan', role_en: 'friend',
+        id_t: 'Oke, jam berapa?',
+        tg_t: 'Okay, anong oras?',
+        en: 'OK, what time?' },
+      { speaker: 'A', role_id: 'teman', role_tg: 'kaibigan', role_en: 'friend',
+        id_t: 'Jam empat ya. Gue jemput.',
+        tg_t: 'Alas-kwatro. Susunduin kita.',
+        en: '4 o\'clock. I\'ll pick you up.' },
+      { speaker: 'B', role_id: 'teman', role_tg: 'kaibigan', role_en: 'friend',
+        id_t: 'Sip, ditunggu!',
+        tg_t: 'Sige, hihintayin kita!',
+        en: 'Cool, I\'ll wait for you!' }
+    ]
+  },
+  {
+    id: 'd3',
+    title_id: 'Tanya Arah',
+    title_tg: 'Asking Directions',
+    title_en: 'Asking directions',
+    note: 'Polite stranger conversation. Notice the use of pak/bu (Indonesian) vs po (Tagalog) for respect.',
+    lines: [
+      { speaker: 'A', role_id: 'pendatang', role_tg: 'tagalabas', role_en: 'visitor',
+        id_t: 'Permisi pak, numpang nanya. Stasiun MRT terdekat di mana ya?',
+        tg_t: 'Excuse me po, magtatanong lang sana ako. Saan po yung pinakamalapit na MRT station?',
+        en: 'Excuse me sir, may I ask. Where\'s the nearest MRT station?' },
+      { speaker: 'B', role_id: 'orang lokal', role_tg: 'lokal', role_en: 'local',
+        id_t: 'Oh, lurus aja terus, nanti belok kanan di lampu merah. Sekitar lima menit jalan kaki.',
+        tg_t: 'Ah, dyan lang po. Diretso lang, tapos kumanan po kayo sa stoplight. Limang minuto na lakad lang.',
+        en: 'Just go straight, then turn right at the stoplight. About 5 minutes\' walk.' },
+      { speaker: 'A', role_id: 'pendatang', role_tg: 'tagalabas', role_en: 'visitor',
+        id_t: 'Oh oke, makasih banyak ya pak!',
+        tg_t: 'Ah okay po, maraming salamat po!',
+        en: 'Oh OK, thank you very much sir!' },
+      { speaker: 'B', role_id: 'orang lokal', role_tg: 'lokal', role_en: 'local',
+        id_t: 'Sama-sama.',
+        tg_t: 'Walang anuman.',
+        en: 'You\'re welcome.' }
+    ]
+  },
+  {
+    id: 'd4',
+    title_id: 'Kenalan',
+    title_tg: 'Pagkakilala',
+    title_en: 'Getting to know each other',
+    note: 'Use this when you actually meet your Zoom partner! Notice the cognate word for "from" feels different but the structure is similar.',
+    lines: [
+      { speaker: 'A', role_id: 'orang baru', role_tg: 'bagong kakilala', role_en: 'new person',
+        id_t: 'Lu dari mana asalnya?',
+        tg_t: 'Saan ka galing?',
+        en: 'Where are you from?' },
+      { speaker: 'B', role_id: 'orang baru', role_tg: 'bagong kakilala', role_en: 'new person',
+        id_t: 'Gue dari Filipina, dari Manila.',
+        tg_t: 'Galing ako sa Indonesia, sa Jakarta.',
+        en: '[Adapt to your real origin]' },
+      { speaker: 'A', role_id: 'orang baru', role_tg: 'bagong kakilala', role_en: 'new person',
+        id_t: 'Wah, keren! Udah berapa lama di sini?',
+        tg_t: 'Wow, ang galing! Gaano katagal ka na dito?',
+        en: 'Wow, cool! How long have you been here?' },
+      { speaker: 'B', role_id: 'orang baru', role_tg: 'bagong kakilala', role_en: 'new person',
+        id_t: 'Baru tiga bulan. Masih belajar bahasanya.',
+        tg_t: 'Tatlong buwan pa lang. Nag-aaral pa ako ng wika.',
+        en: 'Just three months. Still learning the language.' },
+      { speaker: 'A', role_id: 'orang baru', role_tg: 'bagong kakilala', role_en: 'new person',
+        id_t: 'Bahasa lu udah lumayan kok!',
+        tg_t: 'Ang galing ng wika mo!',
+        en: 'Your language is already pretty good!' },
+      { speaker: 'B', role_id: 'orang baru', role_tg: 'bagong kakilala', role_en: 'new person',
+        id_t: 'Makasih! Tapi masih banyak yang belum ngerti.',
+        tg_t: 'Salamat! Pero marami pa akong hindi naiintindihan.',
+        en: 'Thanks! But there\'s still a lot I don\'t understand.' },
+      { speaker: 'A', role_id: 'orang baru', role_tg: 'bagong kakilala', role_en: 'new person',
+        id_t: 'Santai aja. Tinggal di sini lama-lama, pasti lancar.',
+        tg_t: 'Chill ka lang. Tagal-tagal mo lang dito, magiging fluent ka rin.',
+        en: 'Just relax. Stay long enough, you\'ll be fluent.' }
+    ]
+  }
+];
+
+// Chapters - prose content for each, in both languages
+// Cognate/false-friend tags wrap inline. Format: <c id="vocab_id">word</c> for cognate, <f id="vocab_id">word</f> for false friend
+const CHAPTERS = [
+  {
+    n: 1,
+    title_id: 'Saudara dalam Bahasa',
+    title_tg: 'Magkapatid na Wika',
+    sub_id: 'Koneksi Austronesia — keuntungan rahasia kamu.',
+    sub_tg: 'The Austronesian connection — your secret advantage.',
+    sections: [
+      {
+        kind: 'prose',
+        id_html: `<p>Bahasa Tagalog dan Bahasa Indonesia berpisah dari bahasa nenek moyang yang sama sekitar 4.000 tahun yang lalu. Mereka adalah <em>sepupu</em>. Artinya, kamu sudah tahu — tanpa belajar — banyak kosakata. Lihat:</p>`,
+        tg_html: `<p>Tagalog and Indonesian split from a common ancestor language about 4,000 years ago. They are <em>cousins</em>. This means you already know — without studying — a chunk of vocabulary. Look:</p>`
+      },
+      {
+        kind: 'cognate-grid',
+        rows: [
+          ['mata', 'mata', 'eye'],
+          ['anak', 'anak', 'child'],
+          ['lima', 'lima', 'five'],
+          ['langit', 'langit', 'sky'],
+          ['bulan', 'buwan', 'moon / month'],
+          ['<c id="bilang">bilang</c>', '<c id="bilang">bilang</c>', 'to say / count'],
+          ['minum', 'inom', 'to drink'],
+          ['tidur', 'tulog', 'to sleep'],
+          ['takut', 'takot', 'afraid'],
+          ['murah', 'mura', 'cheap'],
+          ['baru', 'bago', 'new']
+        ]
+      },
+      {
+        kind: 'prose',
+        id_html: `<p>Lihat <c id="lima">lima</c> — kedua bahasa mempertahankan kata Austronesia untuk angka "5" tetap utuh. Itu kata berusia 4.000 tahun yang sudah kamu tahu.</p>
+        <h4>Empat sumber kata</h4>
+        <p>Setiap kata dalam kedua bahasa berasal dari salah satu empat sumber:</p>
+        <ul>
+          <li><strong>Asli Austronesia</strong> — kemenangan gratis. <em>Mata, anak, ikan, mati, lima.</em></li>
+          <li><strong>Sansekerta</strong> (kuno, dari pengaruh India) — <em>guru, bahasa, raja, cinta</em>.</li>
+          <li><strong>Loanword Eropa</strong> — di sini bahasa berbeda: Indonesia mendapat dari Belanda dan Portugis (<em>kantor, sepatu, meja</em>); Tagalog dari Spanyol selama 333 tahun (<em>mesa, sapatos, kutsara, eskwela</em>).</li>
+          <li><strong>Bahasa Inggris modern</strong> — kedua bahasa banyak meminjam: <em>computer, meeting, online</em>.</li>
+        </ul>
+        <p>Jadi kosakata awal kamu lebih besar dari yang kamu kira. Mungkin kamu sudah tahu 200+ kata Tagalog sekarang tanpa sadar.</p>`,
+        tg_html: `<p>Look at <c id="lima">lima</c> — both languages kept the Austronesian word for "five" intact. That's a 4,000-year-old word you already know.</p>
+        <h4>Four sources of words</h4>
+        <p>Every word in both languages comes from one of four sources:</p>
+        <ul>
+          <li><strong>Native Austronesian</strong> — your free wins. <em>Mata, anak, ikan, mati, lima.</em></li>
+          <li><strong>Sanskrit</strong> (ancient, from Indian influence) — <em>guru, bahasa, raja, cinta</em>.</li>
+          <li><strong>European loanwords</strong> — here the languages diverge: Indonesian got Dutch and Portuguese (<em>kantor, sepatu, meja</em>); Tagalog got Spanish for 333 years (<em>mesa, sapatos, kutsara, eskwela</em>).</li>
+          <li><strong>Modern English</strong> — both borrow heavily: <em>computer, meeting, online</em>.</li>
+        </ul>
+        <p>So your starting vocabulary is bigger than you think. You probably know 200+ words right now without realizing.</p>`
+      },
+      {
+        kind: 'callout-cognate',
+        id_html: `<strong>Kemenangan kognitif:</strong> Klik kata mana pun yang disorot kuning sepanjang aplikasi ini — itu adalah kognat antar dua bahasa. Akan muncul popup yang menunjukkan koneksi.`,
+        tg_html: `<strong>Cognate wins:</strong> Click any yellow-highlighted word throughout this app — those are cross-language cognates. A popover will show the connection.`
+      }
+    ]
+  },
+  {
+    n: 2,
+    title_id: 'Bunyi & Pengucapan',
+    title_tg: 'Sounds & Pronunciation',
+    sub_id: 'Mudah bagi orang Indonesia. Lima vokal, hampir sama persis.',
+    sub_tg: 'Easy for Indonesians. Five vowels, almost identical.',
+    sections: [
+      {
+        kind: 'prose',
+        id_html: `<p>Sistem vokal Tagalog hampir sama dengan bahasa Indonesia. Tidak ada nada. Tidak ada trik baru.</p>
+        <h4>Vokal</h4>
+        <p>Tagalog standar memiliki 5 vokal — persis sama dengan 5 vokal utama bahasa Indonesia (Indonesia punya 6 karena schwa, yang umumnya tidak ada dalam Tagalog).</p>`,
+        tg_html: `<p>Tagalog pronunciation is easy for Indonesian speakers. The vowel system is essentially the same. No tones. No new tricky consonants.</p>
+        <h4>The vowels</h4>
+        <p>Standard Tagalog has 5 vowels — exactly like Indonesian's main 5 (Indonesian has 6 because of the schwa, which Tagalog mostly lacks).</p>`
+      },
+      {
+        kind: 'table',
+        headers: ['Letter', 'Sound', 'Indonesian', 'Tagalog'],
+        rows: [
+          ['a', '"ah" as in father', 'apa', 'araw'],
+          ['e', '"eh" as in bet', 'meja', 'ekis'],
+          ['i', '"ee" as in machine', 'ini', 'ito'],
+          ['o', '"oh" as in go', 'orang', 'oo'],
+          ['u', '"oo" as in boot', 'udah', 'ulo']
+        ]
+      },
+      {
+        kind: 'prose',
+        id_html: `<p><strong>Schwa hilang.</strong> Tempat di mana Indonesia memiliki schwa (<em>kenapa</em> "kə-NA-pa", <em>empat</em> "əm-PAT"), Tagalog tidak punya. Setiap vokal dalam Tagalog diucapkan penuh.</p>
+        <h4>Konsonan</h4>
+        <ul>
+          <li><strong>k</strong> selalu "k" yang keras — tidak pernah "ch" seperti <em>c</em> dalam bahasa Indonesia.</li>
+          <li><strong>j</strong> di kata Spanyol diucapkan "h" (<em>Juan</em> = "HWAN"). Di kata Inggris seperti "j" (<em>juice</em>). Berbeda dengan Indonesia di mana <em>j</em> selalu seperti "j" Inggris.</li>
+          <li><strong>ng</strong> bekerja persis seperti dalam Indonesia. Tagalog menggunakannya di awal kata juga: <em>ngipin</em> (gigi), <em>ngayon</em> (sekarang).</li>
+          <li><strong>r</strong> digulung/dipantulkan — sama seperti Indonesia.</li>
+          <li><strong>h</strong> di akhir kata selalu diucapkan, sama seperti Indonesia.</li>
+        </ul>
+        <h4>Tantangan: hentian glotal (glottal stop)</h4>
+        <p>Tagalog memiliki suara yang tidak ada dalam bahasa Indonesia: <strong>hentian glotal</strong> — "tertahan" sebentar di tenggorokan, seperti suara antara "uh-oh" dalam bahasa Inggris. Tidak selalu ditulis tetapi mengubah arti:</p>
+        <ul>
+          <li><em>bata</em> (jubah mandi) vs <em>batà</em> (anak) — yang kedua diakhiri hentian glotal</li>
+          <li><em>po</em> (partikel kesopanan) sering memiliki hentian glotal — <em>pô</em></li>
+        </ul>`,
+        tg_html: `<p><strong>The schwa is missing.</strong> Where Indonesian has a schwa (<em>kenapa</em> "kə-NA-pa", <em>empat</em> "əm-PAT"), Tagalog has none. Every vowel in Tagalog is fully pronounced.</p>
+        <h4>Consonants</h4>
+        <ul>
+          <li><strong>k</strong> is always hard "k" — never "ch" the way Indonesian <em>c</em> is.</li>
+          <li><strong>j</strong> in Spanish-loan words is pronounced "h" (<em>Juan</em> = "HWAN"). In English loans it's English "j" (<em>juice</em>). Opposite of Indonesian where <em>j</em> is always English-style.</li>
+          <li><strong>ng</strong> works exactly like Indonesian. Tagalog uses it word-initially too: <em>ngipin</em> (tooth), <em>ngayon</em> (now).</li>
+          <li><strong>r</strong> is rolled/tapped — same as Indonesian.</li>
+          <li><strong>h</strong> at end of words is always pronounced, same as Indonesian.</li>
+        </ul>
+        <h4>The challenge: glottal stop</h4>
+        <p>Tagalog has a sound that doesn't exist in Indonesian: the <strong>glottal stop</strong> — a brief "catch" in the throat, like the sound between "uh-oh" in English. Not always written but it changes meaning:</p>
+        <ul>
+          <li><em>bata</em> (bathrobe) vs <em>batà</em> (child) — the second ends in a glottal stop</li>
+          <li><em>po</em> (politeness particle) often has a glottal — <em>pô</em></li>
+        </ul>`
+      },
+      {
+        kind: 'callout',
+        id_html: `<strong>Perangkap aksen Indonesia:</strong> Pengucapan <em>e</em> sebagai schwa. Dalam Tagalog, <em>e</em> selalu "eh" yang jelas — jangan dilembutkan.`,
+        tg_html: `<strong>Indonesian accent trap:</strong> Pronouncing <em>e</em> as schwa. In Tagalog, <em>e</em> is always a clear "eh" — don't soften it.`
+      }
+    ]
+  },
+  {
+    n: 3,
+    title_id: 'Cara Kerja Kalimat',
+    title_tg: 'How Sentences Work',
+    sub_id: 'Di sini, naluri Indonesia kamu perlu disesuaikan.',
+    sub_tg: 'Where your Indonesian instincts need adjusting.',
+    sections: [
+      {
+        kind: 'prose',
+        id_html: `<p>Tagalog memiliki tata bahasa yang <strong>lebih kompleks</strong> daripada bahasa Indonesia. Bersikap jujur tentang itu sejak awal. Tapi setelah polanya jelas, dapat dipelajari.</p>
+        <h4>1. Verba TERKONJUGASI</h4>
+        <p>Dalam Indonesia, <c id="makan">makan</c> = makan / makan / makan / akan makan / sudah makan. Dalam Tagalog, akarnya <em>kain</em> (makan) memiliki banyak bentuk:</p>`,
+        tg_html: `<p>Tagalog has <strong>more complex grammar</strong> than Indonesian. Be honest about this from the start. But once the patterns click, they're learnable.</p>
+        <h4>1. Verbs DO conjugate</h4>
+        <p>In Indonesian, <c id="makan">makan</c> = eat / eats / ate / will eat / has eaten. In Tagalog, the root <em>kain</em> (eat) has many forms:</p>`
+      },
+      {
+        kind: 'table',
+        headers: ['Tagalog form', 'Aspect', 'Translation'],
+        rows: [
+          ['kumain', 'completed', 'ate'],
+          ['kumakain', 'progressive', 'eating / eats'],
+          ['kakain', 'contemplated', 'will eat'],
+          ['kainin', 'object-focus command', 'eat (it)'],
+          ['kinain', 'passive completed', 'was eaten']
+        ]
+      },
+      {
+        kind: 'prose',
+        id_html: `<h4>2. Urutan kata: V-S-O (verba dulu)</h4>
+        <p>Dalam bahasa Indonesia: <em>Saya makan nasi</em> (S-V-O). Dalam Tagalog: <em>Kumain ako ng kanin</em> (V-S-O). Verba dulu.</p>
+        <h4>3. Pemarkah ang / ng / sa</h4>
+        <p>Tagalog memiliki tiga "kata kecil" yang mendahului kata benda dan menandakan peran kata benda dalam kalimat. Indonesia tidak memiliki ini.</p>
+        <ul>
+          <li><strong>ang / si</strong> = sorotan / topik (untuk subjek)</li>
+          <li><strong>ng / ni</strong> = pelaku / pemilik</li>
+          <li><strong>sa / kay</strong> = arah / lokasi</li>
+        </ul>
+        <p>Contoh: <em>Kumain si Juan ng tinapay sa labas.</em> = "Juan makan roti di luar."</p>
+        <h4>4. Kita vs Kami — sama seperti Indonesia ✅</h4>`,
+        tg_html: `<h4>2. Word order: V-S-O (verb first)</h4>
+        <p>In Indonesian: <em>Saya makan nasi</em> (S-V-O). In Tagalog: <em>Kumain ako ng kanin</em> (V-S-O). Verb first.</p>
+        <h4>3. The ang / ng / sa markers</h4>
+        <p>Tagalog has three "little words" that come before nouns and tell you the noun's role. Indonesian has nothing like this.</p>
+        <ul>
+          <li><strong>ang / si</strong> = focus / topic (for the subject)</li>
+          <li><strong>ng / ni</strong> = actor / possessor</li>
+          <li><strong>sa / kay</strong> = direction / location</li>
+        </ul>
+        <p>Example: <em>Kumain si Juan ng tinapay sa labas.</em> = "Juan ate bread outside."</p>
+        <h4>4. Kita vs Kami — same as Indonesian ✅</h4>`
+      },
+      {
+        kind: 'callout-warn',
+        id_html: `<strong>Jebakan #1:</strong> <f id="kita_we">kita</f>. Dalam Indonesia, <em>kita</em> = kita inklusif. Dalam Tagalog, <em>kita</em> = "Aku ke kamu" (sebagai dalam <em>Mahal kita</em> = "Aku cinta kamu"). Untuk "kita inklusif" dalam Tagalog gunakan <strong>tayo</strong>.`,
+        tg_html: `<strong>Trap #1:</strong> <f id="kita_we">kita</f>. In Indonesian, <em>kita</em> = "we inclusive." In Tagalog, <em>kita</em> = "I-to-you" (as in <em>Mahal kita</em> = "I love you"). For "we inclusive" in Tagalog use <strong>tayo</strong>.`
+      }
+    ]
+  },
+  {
+    n: 4,
+    title_id: 'Kata Ganti — Resmi & Jalanan',
+    title_tg: 'Pronouns — Formal & Street',
+    sub_id: 'Tagalog memiliki "po" — partikel kesopanan yang harus kamu kuasai.',
+    sub_tg: 'Tagalog has "po" — a respect particle you must master.',
+    sections: [
+      {
+        kind: 'prose',
+        id_html: `<p>Kata ganti orang pertama dalam Tagalog hanya satu: <strong>ako</strong>. Tidak ada perbedaan formal/santai seperti <em>saya / aku / gue</em>. Tapi <em>ako</em> berubah bentuk berdasarkan kasus:</p>`,
+        tg_html: `<p>Tagalog has only one first-person pronoun: <strong>ako</strong>. No formal/casual split like Indonesian's <em>saya / aku / gue</em>. But <em>ako</em> changes form based on case:</p>`
+      },
+      {
+        kind: 'table',
+        headers: ['Form', 'Word', 'When used'],
+        rows: [
+          ['ang-form', 'ako', 'Spotlight: "I [verb]"'],
+          ['ng-form', 'ko', 'Possessor or actor: "my X"'],
+          ['sa-form', 'akin', 'Direction: "to/for me"']
+        ]
+      },
+      {
+        kind: 'prose',
+        id_html: `<h4>"Po" — the respect particle</h4>
+        <p>Ini kata terpenting yang harus kamu pelajari. Tidak ada padanan langsung dalam bahasa Indonesia. Yang terdekat: <em>bapak/ibu</em> sebagai cara penghormatan, tapi <em>po</em> berbeda — itu <strong>partikel</strong> yang kamu taburkan dalam kalimat.</p>
+        <ul>
+          <li><strong>po</strong> — partikel kesopanan, dimasukkan dalam kalimat saat berbicara dengan orang yang lebih tua, orang asing, pelanggan</li>
+          <li><strong>opo</strong> — "ya, pak/bu" (versi sopan dari <em>oo</em> "ya")</li>
+        </ul>
+        <p>Bandingkan:</p>
+        <ul>
+          <li><em>Kumusta ka?</em> (santai, ke teman)</li>
+          <li><em>Kumusta po kayo?</em> (sopan, ke yang lebih tua)</li>
+        </ul>
+        <h4>Genderless 3rd person — sama seperti Indonesia ✅</h4>
+        <p><em>Siya</em> (Tagalog) = <c id="dia">dia</c> (Indonesia). Tidak ada perbedaan gender. Filipina dan Indonesia sama-sama merasa "he/she" Inggris itu canggung.</p>`,
+        tg_html: `<h4>"Po" — the respect particle</h4>
+        <p>This is the most important word you'll learn. There's no direct Indonesian equivalent. The closest analogy: <em>bapak/ibu</em> as ways of showing respect, but <em>po</em> works differently — it's a <strong>particle</strong> you sprinkle in sentences.</p>
+        <ul>
+          <li><strong>po</strong> — politeness particle, dropped into sentences when speaking to elders, strangers, customers</li>
+          <li><strong>opo</strong> — "yes, sir/ma'am" (polite version of <em>oo</em> "yes")</li>
+        </ul>
+        <p>Compare:</p>
+        <ul>
+          <li><em>Kumusta ka?</em> (casual, to a friend)</li>
+          <li><em>Kumusta po kayo?</em> (respectful, to an elder)</li>
+        </ul>
+        <h4>Genderless 3rd person — same as Indonesian ✅</h4>
+        <p><em>Siya</em> (Tagalog) = <c id="dia">dia</c> (Indonesian). No gender distinction. Filipinos and Indonesians both find English's "he/she" forced.</p>`
+      },
+      {
+        kind: 'callout',
+        id_html: `<strong>Aturan budaya:</strong> Selalu gunakan <em>po</em> dengan: orang yang lebih tua dari kamu, orang asing, atasan, pelanggan, orang tua siapa pun. Gagal menggunakannya terdengar <em>bastos</em> (kasar).`,
+        tg_html: `<strong>Cultural rule:</strong> Always use <em>po</em> with: people older than you, strangers, bosses, customers, anyone's parents. Failing to use it sounds <em>bastos</em> (rude).`
+      }
+    ]
+  },
+  {
+    n: 5,
+    title_id: 'Sistem Imbuhan',
+    title_tg: 'The Affix System',
+    sub_id: 'Sistem fokus & aspek Tagalog. Lebih kompleks dari Indonesia, tapi dapat dipelajari.',
+    sub_tg: 'Tagalog\'s focus & aspect system. More complex than Indonesian, but learnable.',
+    sections: [
+      {
+        kind: 'prose',
+        id_html: `<p>Seperti Indonesia, Tagalog membangun verba dari <strong>akar + imbuhan</strong>. Tapi sementara Indonesia memiliki beberapa awalan (<em>meN-, ber-, di-, ter-</em>) dan akhiran (<em>-kan, -i, -an</em>), Tagalog memiliki lebih banyak, dan mereka mengkodekan <strong>fokus</strong> (siapa yang disorot) dan <strong>aspek</strong> (kapan/bagaimana).</p>
+        <h4>Verba fokus pelaku — pola -um-</h4>
+        <p>Banyak akar mengambil <strong>-um-</strong> sebagai sisipan untuk membentuk verba fokus pelaku:</p>`,
+        tg_html: `<p>Like Indonesian, Tagalog builds verbs from <strong>roots + affixes</strong>. But where Indonesian has a few prefixes (<em>meN-, ber-, di-, ter-</em>) and suffixes (<em>-kan, -i, -an</em>), Tagalog has more, and they encode <strong>focus</strong> (who's the spotlight) and <strong>aspect</strong> (when/how).</p>
+        <h4>Actor-focus verbs — the -um- pattern</h4>
+        <p>Many roots take <strong>-um-</strong> as an infix to form actor-focus verbs:</p>`
+      },
+      {
+        kind: 'table',
+        headers: ['Root', 'Past', 'Present', 'Future'],
+        rows: [
+          ['kain (eat)', 'kumain', 'kumakain', 'kakain'],
+          ['inom (drink)', 'uminom', 'umiinom', 'iinom'],
+          ['bili (buy)', 'bumili', 'bumibili', 'bibili'],
+          ['alis (leave)', 'umalis', 'umaalis', 'aalis']
+        ]
+      },
+      {
+        kind: 'prose',
+        id_html: `<p>Pola:</p>
+        <ul>
+          <li><strong>Lampau:</strong> sisipkan <em>-um-</em> — k-um-ain, b-um-ili</li>
+          <li><strong>Sekarang:</strong> <em>-um-</em> + duplikasi suku kata pertama akar — k-um-akain</li>
+          <li><strong>Masa depan:</strong> hanya duplikasi suku kata pertama, tanpa <em>-um-</em> — kakain</li>
+        </ul>
+        <h4>Pola mag-</h4>
+        <p>Beberapa akar mengambil <strong>mag-</strong> sebagai gantinya:</p>
+        <ul>
+          <li>Lampau: <em>mag-</em> → <em>nag-</em>: <strong>nagluto</strong> (memasak)</li>
+          <li>Sekarang: <em>nag-</em> + duplikasi: <strong>nagluluto</strong></li>
+          <li>Masa depan: <em>mag-</em> + duplikasi: <strong>magluluto</strong></li>
+        </ul>
+        <h4>Reduplikasi — naluri yang sama dengan Indonesia ✅</h4>
+        <ul>
+          <li><em>araw-araw</em> = "setiap hari" (= Indonesia <em>hari-hari</em>)</li>
+          <li><em>isa-isa</em> = "satu per satu" (= Indonesia <em>satu-satu</em>)</li>
+          <li><em>kaunti-kaunti</em> = "sedikit demi sedikit"</li>
+        </ul>`,
+        tg_html: `<p>The pattern:</p>
+        <ul>
+          <li><strong>Past:</strong> insert <em>-um-</em> — k-um-ain, b-um-ili</li>
+          <li><strong>Present:</strong> <em>-um-</em> + duplicate first syllable of root — k-um-akain</li>
+          <li><strong>Future:</strong> only duplicate first syllable, no <em>-um-</em> — kakain</li>
+        </ul>
+        <h4>The mag- pattern</h4>
+        <p>Some roots take <strong>mag-</strong> instead:</p>
+        <ul>
+          <li>Past: <em>mag-</em> → <em>nag-</em>: <strong>nagluto</strong> (cooked)</li>
+          <li>Present: <em>nag-</em> + duplication: <strong>nagluluto</strong></li>
+          <li>Future: <em>mag-</em> + duplication: <strong>magluluto</strong></li>
+        </ul>
+        <h4>Reduplication — same instinct as Indonesian ✅</h4>
+        <ul>
+          <li><em>araw-araw</em> = "every day" (= Indonesian <em>hari-hari</em>)</li>
+          <li><em>isa-isa</em> = "one by one" (= Indonesian <em>satu-satu</em>)</li>
+          <li><em>kaunti-kaunti</em> = "little by little"</li>
+        </ul>`
+      },
+      {
+        kind: 'callout',
+        id_html: `<strong>Pintasan praktis:</strong> Saat bertemu kata kerja baru, hafalkan tiga bentuk — lampau, sekarang, masa depan, fokus pelaku saja. Itu cukup untuk mulai menggunakannya.`,
+        tg_html: `<strong>Practical shortcut:</strong> When meeting a new verb, memorize three forms — past, present, future, actor-focus only. That's enough to start using it.`
+      }
+    ]
+  },
+  {
+    n: 6,
+    title_id: 'Jiwa Pidato — Partikel',
+    title_tg: 'The Soul of Speech — Particles',
+    sub_id: 'Hal yang membuat kamu terdengar lokal. Jangan lewatkan bab ini.',
+    sub_tg: 'The thing that makes you sound local. Don\'t skip this chapter.',
+    sections: [
+      {
+        kind: 'prose',
+        id_html: `<p>Partikel adalah kata-kata kecil yang ditempel pada kalimat yang membawa <strong>suasana hati, sikap, penekanan, pelunakan, kejutan</strong>. Bahasa Inggris hampir tidak memiliki partikel ("right?", "you know?"). Indonesia dan Tagalog sama-sama memiliki banyak.</p>
+        <p><strong>Berita baik:</strong> partikel Tagalog memetakan hampir langsung ke partikel Indonesia. Mereka adalah pemetaan satu-ke-satu yang paling indah dalam buku ini.</p>
+        <p>Lihat tab <strong>Partikel</strong> untuk daftar lengkap. Yang paling penting:</p>`,
+        tg_html: `<p>Particles are tiny words tacked onto sentences that carry <strong>mood, attitude, emphasis, softening, surprise</strong>. English barely has them ("right?", "you know?"). Indonesian and Tagalog both have them in abundance.</p>
+        <p><strong>Good news:</strong> Tagalog particles map almost one-to-one onto Indonesian particles. They're the most beautiful direct mapping in this book.</p>
+        <p>See the <strong>Particles</strong> tab for the full table. The most important:</p>`
+      },
+      {
+        kind: 'table',
+        headers: ['Indonesian', 'Tagalog', 'Function'],
+        rows: [
+          ['udah', 'na', 'already'],
+          ['aja', 'lang', 'just / only'],
+          ['dong', 'naman', 'friendly insistence'],
+          ['kan', 'di ba', 'right?'],
+          ['banget', 'sobra / talaga', 'very'],
+          ['sih', 'kasi / eh', 'mood softener']
+        ]
+      },
+      {
+        kind: 'prose',
+        id_html: `<h4>Stacking particles</h4>
+        <p>Seperti Indonesia, partikel Tagalog menumpuk. Berikut kalimat yang berarti hampir sama dengan tumpukan partikel berbeda:</p>
+        <ul>
+          <li><em>Yaudah deh, gue pulang aja ya.</em> (Indonesia)</li>
+          <li><em>Sige na nga, uuwi na lang ako.</em> (Tagalog)</li>
+        </ul>
+        <p>Kedua kalimat = "Baiklah, aku pulang saja ya." Tumpukan partikel = rasa lokal.</p>`,
+        tg_html: `<h4>Stacking particles</h4>
+        <p>Like Indonesian, Tagalog particles stack. Here's a sentence meaning roughly the same with different particle stacks:</p>
+        <ul>
+          <li><em>Yaudah deh, gue pulang aja ya.</em> (Indonesian)</li>
+          <li><em>Sige na nga, uuwi na lang ako.</em> (Tagalog)</li>
+        </ul>
+        <p>Both = "Alright then, I'll just go home, yeah." Stacked particles = local flavor.</p>`
+      }
+    ]
+  },
+  {
+    n: 7,
+    title_id: 'Kosakata Penting',
+    title_tg: 'Essential Vocabulary',
+    sub_id: 'Lihat tab Flashcard untuk latihan. Catatan tentang sumber kata di bawah.',
+    sub_tg: 'See the Flashcards tab to drill. Notes on word sources below.',
+    sections: [
+      {
+        kind: 'prose',
+        id_html: `<p>Beberapa catatan tentang kosakata Tagalog vs Indonesia:</p>
+        <h4>Angka</h4>
+        <p>Tagalog memiliki <strong>dua sistem angka</strong> — asli dan turunan Spanyol. Keduanya digunakan:</p>
+        <ul>
+          <li>Untuk uang & waktu: turunan Spanyol (<em>singko, dyes, beynte, alas-singko</em>)</li>
+          <li>Untuk menghitung benda: asli Tagalog (<em>tatlong libro</em> = tiga buku)</li>
+        </ul>
+        <h4>Kata yang sama dalam kedua bahasa</h4>
+        <p>Banyak kata Austronesia yang dipertahankan: <c id="anak">anak</c>, <c id="mata">mata</c>, <c id="lima">lima</c>, <c id="bilang">bilang</c>, <c id="takut">takut/takot</c>, <c id="ingat">ingat</c>, <c id="mati">mati/patay</c>.</p>
+        <h4>Pinjaman Spanyol</h4>
+        <p>Tagalog memiliki ribuan kata Spanyol. Indonesia memiliki sedikit. Maka, kata-kata seperti <em>mesa, kutsara, sapatos, eskwela, trabaho</em> akan baru bagimu — tetapi konsisten (jika kamu mengenal kata Spanyol tertentu, kamu mengenal kata Tagalog).</p>
+        <h4>Inggris di mana-mana</h4>
+        <p>Filipina menggunakan kata-kata Inggris secara konstan dalam Tagalog. Ketika ragu, <strong>katakan kata Inggris saja</strong>. Itu normal. Itulah cara Manila sebenarnya berbicara.</p>`,
+        tg_html: `<p>Notes on Tagalog vs Indonesian vocabulary:</p>
+        <h4>Numbers</h4>
+        <p>Tagalog has <strong>two number systems</strong> — native and Spanish-derived. Both are used:</p>
+        <ul>
+          <li>For money & time: Spanish-derived (<em>singko, dyes, beynte, alas-singko</em>)</li>
+          <li>For counting things: native Tagalog (<em>tatlong libro</em> = three books)</li>
+        </ul>
+        <h4>Same word in both languages</h4>
+        <p>Many Austronesian words preserved: <c id="anak">anak</c>, <c id="mata">mata</c>, <c id="lima">lima</c>, <c id="bilang">bilang</c>, <c id="takut">takut/takot</c>, <c id="ingat">ingat</c>, <c id="mati">mati/patay</c>.</p>
+        <h4>Spanish loans</h4>
+        <p>Tagalog has thousands of Spanish words. Indonesian has few. So words like <em>mesa, kutsara, sapatos, eskwela, trabaho</em> will be new to you — but consistent (if you know a particular Spanish word, you know the Tagalog word).</p>
+        <h4>English everywhere</h4>
+        <p>Filipinos use English words constantly in Tagalog. When in doubt, <strong>just say the English word</strong>. It's normal. It's how Manila actually speaks.</p>`
+      }
+    ]
+  },
+  {
+    n: 8,
+    title_id: 'Pola Percakapan',
+    title_tg: 'Conversational Patterns',
+    sub_id: 'Bagaimana mengawali, bertanya, menyatakan keinginan.',
+    sub_tg: 'How to greet, ask, state wants.',
+    sections: [
+      {
+        kind: 'prose',
+        id_html: `<h4>Salam</h4>
+        <ul>
+          <li><em>Hi! Kumusta?</em> = "Hi! Apa kabar?" (Tagalog "kumusta" dari Spanyol "¿cómo está?")</li>
+          <li><em>Mabuti naman, ikaw?</em> = "Baik, kamu?"</li>
+          <li><em><c id="kabar">Kumain ka na?</c></em> = "Sudah makan?" — sapaan yang sangat umum, persis seperti Indonesia <em>Udah makan?</em></li>
+          <li><em>Tagal nating hindi nagkita!</em> = "Lama tidak ketemu!" (= Indo <em>Lama nggak ketemu!</em>)</li>
+        </ul>
+        <h4>Memperkenalkan diri</h4>
+        <p><em>Hi, ako si Andi. Galing ako sa Indonesia. Nakatira ako sa Maynila ngayon. Nag-aaral ako ng Tagalog. Nice to meet you!</em></p>
+        <p>= "Hi, saya Andi. Saya dari Indonesia. Saya tinggal di Manila sekarang. Saya belajar Tagalog. Senang berkenalan!"</p>
+        <h4>Mengatakan apa yang kamu inginkan</h4>
+        <p>Kata <strong>gusto</strong> (dari Spanyol <em>gustar</em>) mencakup "ingin" dan "suka" sekaligus:</p>
+        <ul>
+          <li><em>Gusto kong kumain.</em> = "Saya ingin makan." (= <em><c id="mau">Mau</c> makan gue.</em>)</li>
+          <li><em>Gusto ko ang kape.</em> = "Saya suka kopi."</li>
+          <li><em>Gusto kita.</em> = "Saya suka kamu." (gunakan kata ganti khusus <em>kita</em>)</li>
+        </ul>`,
+        tg_html: `<h4>Greetings</h4>
+        <ul>
+          <li><em>Hi! Kumusta?</em> = "Hi! How are you?" (Tagalog "kumusta" from Spanish "¿cómo está?")</li>
+          <li><em>Mabuti naman, ikaw?</em> = "Fine, you?"</li>
+          <li><em><c id="kabar">Kumain ka na?</c></em> = "Have you eaten?" — extremely common greeting, exactly like Indonesian <em>Udah makan?</em></li>
+          <li><em>Tagal nating hindi nagkita!</em> = "Long time no see!" (= Indo <em>Lama nggak ketemu!</em>)</li>
+        </ul>
+        <h4>Self-introduction</h4>
+        <p><em>Hi, ako si Andi. Galing ako sa Indonesia. Nakatira ako sa Maynila ngayon. Nag-aaral ako ng Tagalog. Nice to meet you!</em></p>
+        <p>= "Hi, I'm Andi. I'm from Indonesia. I live in Manila now. I'm studying Tagalog. Nice to meet you!"</p>
+        <h4>Saying what you want</h4>
+        <p>The word <strong>gusto</strong> (from Spanish <em>gustar</em>) covers both "want" and "like":</p>
+        <ul>
+          <li><em>Gusto kong kumain.</em> = "I want to eat." (= <em><c id="mau">Mau</c> makan gue.</em>)</li>
+          <li><em>Gusto ko ang kape.</em> = "I like coffee."</li>
+          <li><em>Gusto kita.</em> = "I like you." (using the special <em>kita</em> pronoun)</li>
+        </ul>`
+      }
+    ]
+  },
+  {
+    n: 9,
+    title_id: 'Dialog Praktis',
+    title_tg: 'Practical Dialogues',
+    sub_id: 'Buka tab Dialog. Mainkan ini bersama partner Zoom kamu.',
+    sub_tg: 'Open the Dialogue tab. Role-play these with your Zoom partner.',
+    sections: [
+      {
+        kind: 'prose',
+        id_html: `<p>Bab ini paling baik dialami di tab <strong>Dialog</strong>. Empat skenario yang dicerminkan persis antara kedua bahasa:</p>
+        <ol>
+          <li><strong>Di Warung / Sa Karinderya</strong> — memesan makanan</li>
+          <li><strong>Chat dengan teman</strong> — pesan kasual</li>
+          <li><strong>Tanya arah</strong> — interaksi sopan dengan orang asing</li>
+          <li><strong>Kenalan</strong> — bertemu seseorang baru</li>
+        </ol>
+        <p>Cara menggunakan dengan partner Zoom:</p>
+        <ol>
+          <li>Kamu berdua memilih dialog yang sama</li>
+          <li>Salah satu memilih peran A, yang lain memilih B</li>
+          <li>Bergiliran mengucapkan baris kalian dalam bahasa target — kamu dalam Bahasa, partner kamu dalam Tagalog</li>
+          <li>Periksa terjemahan bahasa Inggris jika tersembunyi</li>
+        </ol>`,
+        tg_html: `<p>This chapter is best experienced in the <strong>Dialogue</strong> tab. Four scenarios mirrored exactly between both languages:</p>
+        <ol>
+          <li><strong>Di Warung / Sa Karinderya</strong> — ordering food</li>
+          <li><strong>Texting a friend</strong> — casual messaging</li>
+          <li><strong>Asking directions</strong> — polite interaction with a stranger</li>
+          <li><strong>Getting acquainted</strong> — meeting someone new</li>
+        </ol>
+        <p>How to use with a Zoom partner:</p>
+        <ol>
+          <li>Both pick the same dialogue</li>
+          <li>One picks role A, the other picks B</li>
+          <li>Take turns saying your lines in your target language — you in Bahasa, your partner in Tagalog</li>
+          <li>Check the English translation if you get stuck</li>
+        </ol>`
+      },
+      {
+        kind: 'callout-cognate',
+        id_html: `<strong>Tip:</strong> Mulai dengan Dialog 1 (Di Warung). Itu paling mudah. Kalimat pendek. Banyak partikel yang sama (<em>aja/lang, dong/naman</em>).`,
+        tg_html: `<strong>Tip:</strong> Start with Dialogue 1 (Sa Karinderya). It's the easiest. Short sentences. Lots of paired particles (<em>aja/lang, dong/naman</em>).`
+      }
+    ]
+  },
+  {
+    n: 10,
+    title_id: 'Jebakan Sahabat Palsu',
+    title_tg: 'False Friend Pitfalls',
+    sub_id: 'Naluri kamu akan mengkhianati kamu di sini-sini saja. Berhati-hatilah.',
+    sub_tg: 'Your instincts will betray you in these specific places. Stay alert.',
+    sections: [
+      {
+        kind: 'prose',
+        id_html: `<h4>Sahabat palsu utama (arti berbeda)</h4>
+        <ul>
+          <li><f id="kita_we">kita</f> — Indonesia: kita inklusif. Tagalog: kata ganti khusus "Aku ke kamu". <strong>Jebakan terbesar.</strong></li>
+          <li><f id="bukas">bukas</f> — Tagalog: besok. Indonesia: tidak ada (yang benar adalah <em>besok</em>). Tagalog "bukas" juga bisa berarti "terbuka."</li>
+          <li><f id="mahal_money">mahal</f> — Indonesia: mahal. Tagalog: mahal DAN tercinta. <em>Mahal kita</em> = "Aku cinta kamu" — bukan "Kamu mahal"!</li>
+          <li><strong>baba</strong> — Tagalog: turun / lebih rendah. Mendekati Indonesia <em>babi</em>. Hati-hati.</li>
+          <li><strong>basa</strong> — Tagalog: basah ATAU baca. Konteks memberi tahu kamu yang mana.</li>
+          <li><strong>sayang</strong> — kedua bahasa memilikinya tetapi penggunaannya berbeda. Tagalog <em>sayang</em> = sayang sekali; tetapi untuk "Aku cinta kamu" Tagalog menggunakan <em>mahal</em>, bukan <em>sayang</em> seperti Indonesia.</li>
+          <li><strong>gusto</strong> — Tagalog: ingin/suka. Indonesia: tidak ada (gunakan <em>mau</em> atau <em>suka</em>).</li>
+        </ul>
+        <h4>Naluri Indonesia yang TRANSFER dengan baik</h4>
+        <ul>
+          <li>Kata ganti tanpa gender (<em>siya/dia</em>) ✅</li>
+          <li>Pemisahan kita inklusif/eksklusif (<em>tayo/kami</em> = <em>kita/kami</em>) ✅</li>
+          <li>Reduplikasi (<em>araw-araw / hari-hari</em>) ✅</li>
+          <li>Tidak ada artikel ✅</li>
+          <li>Kata sifat setelah kata benda + linker ✅</li>
+          <li>Budaya kesopanan (<em>po</em> seperti <em>bapak/ibu</em>) ✅</li>
+          <li>Inti kosakata Austronesia ✅</li>
+        </ul>`,
+        tg_html: `<h4>Major false friends (different meanings)</h4>
+        <ul>
+          <li><f id="kita_we">kita</f> — Indo: we inclusive. Tag: special pronoun "I-to-you". <strong>The biggest trap.</strong></li>
+          <li><f id="bukas">bukas</f> — Tagalog: tomorrow. Indonesian: doesn't exist (correct word is <em>besok</em>). Tagalog "bukas" can also mean "open."</li>
+          <li><f id="mahal_money">mahal</f> — Indonesian: expensive. Tagalog: expensive AND beloved. <em>Mahal kita</em> = "I love you" — not "you are expensive"!</li>
+          <li><strong>baba</strong> — Tagalog: go down / lower. Close to Indonesian <em>babi</em>. Be careful.</li>
+          <li><strong>basa</strong> — Tagalog: wet OR read. Context tells you which.</li>
+          <li><strong>sayang</strong> — both languages have it but uses differ. Tagalog <em>sayang</em> = what a pity; but for "I love you affectionately" Tagalog uses <em>mahal</em>, not <em>sayang</em> like Indonesian.</li>
+          <li><strong>gusto</strong> — Tagalog: want/like. Indonesian: doesn't exist (use <em>mau</em> or <em>suka</em>).</li>
+        </ul>
+        <h4>Indonesian instincts that DO transfer</h4>
+        <ul>
+          <li>Genderless pronouns (<em>siya/dia</em>) ✅</li>
+          <li>Inclusive/exclusive we split (<em>tayo/kami</em> = <em>kita/kami</em>) ✅</li>
+          <li>Reduplication (<em>araw-araw / hari-hari</em>) ✅</li>
+          <li>No articles ✅</li>
+          <li>Adjectives after noun + linker ✅</li>
+          <li>Politeness culture (<em>po</em> like <em>bapak/ibu</em>) ✅</li>
+          <li>Austronesian core vocabulary ✅</li>
+        </ul>`
+      }
+    ]
+  },
+  {
+    n: 11,
+    title_id: 'Membangun Kebiasaan',
+    title_tg: 'Building a Practice',
+    sub_id: 'Konsistensi mengalahkan intensitas. Tujuan 3 bulan.',
+    sub_tg: 'Consistency beats intensity. Three-month targets.',
+    sections: [
+      {
+        kind: 'prose',
+        id_html: `<p>Menjadi konvensional membutuhkan kebiasaan, bukan bakat. Regimen sederhana:</p>
+        <h4>Harian (15-30 menit)</h4>
+        <ul>
+          <li>Tonton satu video YouTube pendek dalam bahasa target</li>
+          <li>Pilih satu kata dan gunakan lima kali dalam pikiran kamu dalam kalimat berbeda</li>
+          <li>Dengarkan musik dalam bahasa target</li>
+        </ul>
+        <h4>Mingguan</h4>
+        <ul>
+          <li>Lakukan satu percakapan 15 menit dengan penutur asli</li>
+          <li>Baca ulang Bab 6 (Partikel)</li>
+        </ul>
+        <h4>Target 3-bulan yang realistis</h4>
+        <ul>
+          <li><strong>Bulan 1:</strong> Sapa, perkenalkan diri, pesan makanan, ajukan pertanyaan dasar, hitung, gunakan 5 partikel.</li>
+          <li><strong>Bulan 2:</strong> Tahan obrolan ringan 5 menit, ceritakan harimu dalam waktu lampau/sekarang/masa depan, tawar harga, tanya arah.</li>
+          <li><strong>Bulan 3:</strong> Ceritakan kisah pendek, mengeluh dengan sopan, bercanda dengan teman, ikuti ~70% obrolan kasual antara penutur asli.</li>
+        </ul>
+        <p>Tetap di Manila selama 3-6 bulan dan menggunakan Tagalog setiap hari biasanya membuat orang Indonesia mencapai kefasihan fungsional lebih cepat dari yang mereka harapkan — karena fondasinya sudah ada.</p>
+        <p><em>Mabuting kapalaran sa pag-aaral mo!</em> (Semoga sukses dalam belajarmu!)</p>`,
+        tg_html: `<p>Becoming conversational requires habit, not talent. A simple regimen:</p>
+        <h4>Daily (15-30 minutes)</h4>
+        <ul>
+          <li>Watch one short YouTube video in target language</li>
+          <li>Pick one word and use it five times in your head in different sentences</li>
+          <li>Listen to music in target language</li>
+        </ul>
+        <h4>Weekly</h4>
+        <ul>
+          <li>Have one 15-minute conversation with a native speaker</li>
+          <li>Re-read Chapter 6 (Particles)</li>
+        </ul>
+        <h4>Realistic 3-month targets</h4>
+        <ul>
+          <li><strong>Month 1:</strong> Greet, introduce yourself, order food, ask basic questions, count, use 5 particles.</li>
+          <li><strong>Month 2:</strong> Hold 5-minute small-talk, narrate your day in past/present/future, negotiate prices, ask directions.</li>
+          <li><strong>Month 3:</strong> Tell short stories, complain politely, joke around with friends, follow ~70% of casual chat between natives.</li>
+        </ul>
+        <p>Staying in your target city for 3-6 months and using the language daily commonly leads to functional fluency faster than expected — because the Austronesian foundation is already there.</p>
+        <p><em>Selamat belajar!</em> (Happy learning!)</p>`
+      }
+    ]
+  }
+];
+
+/* ---------- STATE ---------- */
+
+const state = {
+  mode: 'id',         // 'id' (Bahasa Gaul) or 'tg' (Tagalog Kalye)
+  chapter: 1,
+  tab: 'lesson',
+  flashIndex: 0,
+  flashFlipped: false,
+  dialogueId: 'd1',
+  role: 'A'
+};
+
+/* ---------- LANG STRINGS ---------- */
+
+// UI text in both languages. mode = the language the user is LEARNING.
+// So when mode='id', we show UI in Tagalog/English (user is a Tagalog speaker).
+// When mode='tg', we show UI in Indonesian/English (user is an Indonesian speaker).
+const UI = {
+  id: {  // user is learning Indonesian, base language Tagalog/English
+    modeLabel: 'Bahasa Gaul',
+    targetTag: 'INDO',
+    yourLangLabel: 'Tagalog (your language)',
+    targetLangLabel: 'Indonesian (target)',
+    flashHint: 'Tap card to flip · ← → to navigate',
+    flashFront: 'Indonesian',
+    flashBack: 'Meaning',
+    diaTipPrompt: 'Tip: Practice with a Zoom partner. They learn Tagalog, you learn Indonesian — you say the lines on the right (your target).',
+    yourTurn: 'Your line (Indonesian)',
+    partnerTurn: 'Partner\'s line (Tagalog/English)'
+  },
+  tg: {  // user is learning Tagalog, base language Indonesian/English
+    modeLabel: 'Tagalog Kalye',
+    targetTag: 'TAG',
+    yourLangLabel: 'Indonesian (your language)',
+    targetLangLabel: 'Tagalog (target)',
+    flashHint: 'Ketuk kartu untuk membalik · ← → untuk navigasi',
+    flashFront: 'Tagalog',
+    flashBack: 'Arti',
+    diaTipPrompt: 'Tips: Latihan dengan partner Zoom. Mereka belajar Indonesia, kamu belajar Tagalog — kamu mengucapkan baris di kanan (target kamu).',
+    yourTurn: 'Baris kamu (Tagalog)',
+    partnerTurn: 'Baris partner (Indonesia/Inggris)'
+  }
+};
+
+/* ---------- HELPERS ---------- */
+
+function ui() { return UI[state.mode]; }
+
+function vocabById(id) {
+  return VOCAB.find(v => v.id === id);
+}
+
+function targetWord(v) {
+  return state.mode === 'id' ? v.id_w : v.tg_w;
+}
+
+function partnerWord(v) {
+  return state.mode === 'id' ? v.tg_w : v.id_w;
+}
+
+// Process inline markup for cognates and false friends in HTML strings
+function processMarkup(html) {
+  if (!html) return '';
+  return html.replace(/<c id="([^"]+)">([^<]+)<\/c>/g, (m, id, txt) =>
+    `<span class="cognate" data-id="${id}">${txt}</span>`
+  ).replace(/<f id="([^"]+)">([^<]+)<\/f>/g, (m, id, txt) =>
+    `<span class="false-friend" data-id="${id}">${txt}</span>`
+  );
+}
+
+/* ---------- RENDER FUNCTIONS ---------- */
+
+function renderModePill() {
+  const pill = document.getElementById('mode-pill');
+  pill.textContent = ui().modeLabel;
+}
+
+function renderChapNav() {
+  const nav = document.getElementById('chap-nav');
+  nav.innerHTML = CHAPTERS.map(ch => {
+    const title = state.mode === 'id' ? ch.title_id : ch.title_tg;
+    const cls = ch.n === state.chapter ? 'chap-btn active' : 'chap-btn';
+    return `<button class="${cls}" data-chap="${ch.n}" type="button">
+      <span class="chap-btn-num">${String(ch.n).padStart(2,'0')}</span>${title}
+    </button>`;
+  }).join('');
+}
+
+function renderTabBar() {
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.tab === state.tab);
+  });
+}
+
+function renderContent() {
+  const c = document.getElementById('content');
+  if (state.tab === 'lesson') c.innerHTML = renderLesson();
+  else if (state.tab === 'vocab') c.innerHTML = renderVocab();
+  else if (state.tab === 'particles') c.innerHTML = renderParticles();
+  else if (state.tab === 'dialogue') c.innerHTML = renderDialogue();
+  c.classList.remove('fade-in');
+  void c.offsetWidth; // force reflow
+  c.classList.add('fade-in');
+  attachInlineHandlers();
+  if (state.tab === 'vocab') attachFlashcardHandlers();
+  if (state.tab === 'dialogue') attachDialogueHandlers();
+}
+
+function renderLesson() {
+  const ch = CHAPTERS.find(c => c.n === state.chapter);
+  if (!ch) return '<p>Chapter not found.</p>';
+  const isId = state.mode === 'id';
+  const title = isId ? ch.title_id : ch.title_tg;
+  const sub = isId ? ch.sub_id : ch.sub_tg;
+  
+  let body = `<div class="reader">
+    <p class="chap-eyebrow">Chapter ${String(ch.n).padStart(2,'0')} · ${ui().modeLabel}</p>
+    <h1 class="chap-title">${title}</h1>
+    <p class="chap-subtitle">${sub}</p>`;
+  
+  for (const sec of ch.sections) {
+    body += renderSection(sec, isId);
+  }
+  
+  body += '</div>';
+  return body;
+}
+
+function renderSection(sec, isId) {
+  if (sec.kind === 'prose') {
+    return processMarkup(isId ? sec.id_html : sec.tg_html);
+  }
+  if (sec.kind === 'table') {
+    return `<table>
+      <thead><tr>${sec.headers.map(h => `<th>${h}</th>`).join('')}</tr></thead>
+      <tbody>${sec.rows.map(r => `<tr>${r.map(c => `<td>${processMarkup(c)}</td>`).join('')}</tr>`).join('')}</tbody>
+    </table>`;
+  }
+  if (sec.kind === 'cognate-grid') {
+    return `<table>
+      <thead><tr><th>Indonesian</th><th>Tagalog</th><th>English</th></tr></thead>
+      <tbody>${sec.rows.map(r => `<tr>${r.map(c => `<td>${processMarkup(c)}</td>`).join('')}</tr>`).join('')}</tbody>
+    </table>`;
+  }
+  if (sec.kind === 'callout') {
+    return `<div class="callout">
+      <div class="callout-label">Note</div>
+      <div>${processMarkup(isId ? sec.id_html : sec.tg_html)}</div>
+    </div>`;
+  }
+  if (sec.kind === 'callout-warn') {
+    return `<div class="callout warn">
+      <div class="callout-label">Warning</div>
+      <div>${processMarkup(isId ? sec.id_html : sec.tg_html)}</div>
+    </div>`;
+  }
+  if (sec.kind === 'callout-cognate') {
+    return `<div class="callout cognate-callout">
+      <div class="callout-label">Cognate</div>
+      <div>${processMarkup(isId ? sec.id_html : sec.tg_html)}</div>
+    </div>`;
+  }
+  return '';
+}
+
+function renderVocab() {
+  if (state.flashIndex >= VOCAB.length) state.flashIndex = 0;
+  const v = VOCAB[state.flashIndex];
+  const target = targetWord(v);
+  const partner = partnerWord(v);
+  
+  const front = `<div class="flashcard-face front">
+    <p class="fc-tag">${ui().flashFront}</p>
+    <h2 class="fc-word">${target}</h2>
+    ${v.status === 'cognate' ? '<span class="fc-cognate-badge">Cognate ✦</span>' : ''}
+    ${v.status === 'false-friend' ? '<span class="fc-warn-badge">⚠ False friend</span>' : ''}
+  </div>`;
+  
+  const back = `<div class="flashcard-face back">
+    <p class="fc-tag">${ui().flashBack}</p>
+    <p class="fc-meaning">${v.en}</p>
+    <p class="fc-counterpart">${ui().yourLangLabel.includes('Tagalog') ? partner : partner}</p>
+    ${v.note ? `<p class="fc-note">${v.note}</p>` : ''}
+  </div>`;
+  
+  return `<div class="vocab-page">
+    <div class="vocab-header">
+      <h1 class="vocab-title">Flashcards</h1>
+      <span class="vocab-counter">${VOCAB.length} cards · ${countCognates()} cognates · ${countWarnings()} false friends</span>
+    </div>
+    <div class="flashcard-stage">
+      <div class="flashcard ${state.flashFlipped ? 'flipped' : ''}" id="flashcard">
+        <div class="flashcard-inner">
+          ${front}
+          ${back}
+        </div>
+      </div>
+    </div>
+    <div class="flashcard-controls">
+      <button class="fc-btn" id="fc-prev" type="button" ${state.flashIndex === 0 ? 'disabled' : ''}>← Prev</button>
+      <span class="fc-progress">${state.flashIndex + 1} / ${VOCAB.length}</span>
+      <button class="fc-btn" id="fc-next" type="button" ${state.flashIndex === VOCAB.length - 1 ? 'disabled' : ''}>Next →</button>
+    </div>
+    <p class="fc-hint">${ui().flashHint}</p>
+  </div>`;
+}
+
+function countCognates() {
+  return VOCAB.filter(v => v.status === 'cognate').length;
+}
+function countWarnings() {
+  return VOCAB.filter(v => v.status === 'false-friend').length;
+}
+
+function renderParticles() {
+  const isId = state.mode === 'id';
+  const intro = isId
+    ? 'Partikel adalah jiwa percakapan. Kedua bahasa berbagi sistem yang hampir simetris. Tabel ini adalah satu-satunya alat referensi yang paling berdaya guna dalam aplikasi ini — selalu dapat diakses, di setiap bab.'
+    : 'Particles are the soul of conversation. Both languages share an almost symmetric system. This table is the single highest-leverage reference in this app — always accessible, in every chapter.';
+  
+  const headerOrder = isId
+    ? ['Indonesian', 'Tagalog', 'Function', 'Indonesian example', 'Tagalog example', 'English']
+    : ['Tagalog', 'Indonesian', 'Function', 'Tagalog example', 'Indonesian example', 'English'];
+  
+  const rows = PARTICLES.map(p => {
+    if (isId) {
+      return `<tr>
+        <td><span class="particle-word">${p.id_w}</span></td>
+        <td><span class="particle-word">${p.tg_w}</span></td>
+        <td><span class="particle-fn">${p.fn}</span></td>
+        <td><span class="particle-ex">${p.id_ex}</span></td>
+        <td><span class="particle-ex">${p.tg_ex}</span></td>
+        <td><span class="particle-ex">${p.en}</span></td>
+      </tr>`;
+    } else {
+      return `<tr>
+        <td><span class="particle-word">${p.tg_w}</span></td>
+        <td><span class="particle-word">${p.id_w}</span></td>
+        <td><span class="particle-fn">${p.fn}</span></td>
+        <td><span class="particle-ex">${p.tg_ex}</span></td>
+        <td><span class="particle-ex">${p.id_ex}</span></td>
+        <td><span class="particle-ex">${p.en}</span></td>
+      </tr>`;
+    }
+  }).join('');
+  
+  return `<div class="particles-page">
+    <div class="vocab-header">
+      <h1 class="vocab-title">Particles cross-reference</h1>
+      <span class="vocab-counter">${PARTICLES.length} pairs</span>
+    </div>
+    <p class="particles-intro">${intro}</p>
+    <table class="particles-table">
+      <thead><tr>${headerOrder.map((h,i) => {
+        let cls = '';
+        if (i === 0) cls = isId ? 'id-col' : 'tg-col';
+        if (i === 1) cls = isId ? 'tg-col' : 'id-col';
+        return `<th class="${cls}">${h}</th>`;
+      }).join('')}</tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+  </div>`;
+}
+
+function renderDialogue() {
+  const dia = DIALOGUES.find(d => d.id === state.dialogueId);
+  const isId = state.mode === 'id';
+  
+  const picker = `<div class="dialogue-picker">${DIALOGUES.map((d, i) => {
+    const title = isId ? d.title_id : d.title_tg;
+    const cls = d.id === state.dialogueId ? 'dialogue-pick-btn active' : 'dialogue-pick-btn';
+    return `<button class="${cls}" data-dia="${d.id}" type="button">
+      <div class="dialogue-pick-num">DIALOGUE ${String(i+1).padStart(2,'0')}</div>
+      <p class="dialogue-pick-title">${title}</p>
+    </button>`;
+  }).join('')}</div>`;
+  
+  const roleBar = `<p class="role-bar-prompt">${isId ? 'Pilih peran kamu' : 'Pick your role'}</p>
+    <div class="role-bar">
+      <button class="role-btn ${state.role === 'A' ? 'active' : ''}" data-role="A" type="button">Speaker A</button>
+      <button class="role-btn ${state.role === 'B' ? 'active' : ''}" data-role="B" type="button">Speaker B</button>
+    </div>`;
+  
+  const lines = dia.lines.map((line, i) => {
+    const isYour = line.speaker === state.role;
+    const target = isId ? line.id_t : line.tg_t;
+    const partner = isId ? line.tg_t : line.id_t;
+    const role = isId ? line.role_id : line.role_tg;
+    const cls = isYour ? 'dialogue-line your-turn' : 'dialogue-line';
+    return `<div class="${cls}">
+      <div class="dialogue-line-speaker">${line.speaker}</div>
+      <div class="dialogue-line-content">
+        <p class="dialogue-line-role">${role} ${isYour ? '· ' + (isId ? 'GILIRAN KAMU' : 'YOUR TURN') : ''}</p>
+        <p class="dialogue-line-target">${target}</p>
+        <p class="dialogue-line-en">${line.en}</p>
+        <p class="dialogue-line-other">${isId ? '↻ Tagalog: ' : '↻ Indonesian: '}${partner}</p>
+      </div>
+    </div>`;
+  }).join('');
+  
+  const titleEn = dia.title_en;
+  return `<div class="dialogue-page">
+    <div class="vocab-header">
+      <h1 class="vocab-title">${titleEn}</h1>
+      <span class="vocab-counter">${DIALOGUES.length} scenarios</span>
+    </div>
+    ${picker}
+    ${roleBar}
+    <div class="dialogue-script">${lines}</div>
+    <div class="dialogue-tip">${dia.note}</div>
+  </div>`;
+}
+
+/* ---------- POPOVER ---------- */
+
+const popover = document.getElementById('popover');
+let popoverActive = false;
+
+function showPopover(targetEl, vocab, isCognate) {
+  const partner = state.mode === 'id' ? vocab.tg_w : vocab.id_w;
+  const target = state.mode === 'id' ? vocab.id_w : vocab.tg_w;
+  const yourLabel = state.mode === 'id' ? 'INDONESIAN' : 'TAGALOG';
+  const partnerLabel = state.mode === 'id' ? 'TAGALOG' : 'INDONESIAN';
+  
+  popover.className = 'popover ' + (isCognate ? 'cognate-popover' : 'warn-popover');
+  popover.innerHTML = `
+    <div class="popover-tag">${isCognate ? '✦ Cognate' : '⚠ False friend'}</div>
+    <div class="popover-pair">
+      <div class="popover-side">
+        <div class="popover-side-label">${yourLabel}</div>
+        <div class="popover-word">${target}</div>
+      </div>
+      <div class="popover-side">
+        <div class="popover-side-label">${partnerLabel}</div>
+        <div class="popover-word">${partner}</div>
+      </div>
+    </div>
+    <div class="popover-meaning"><strong>${vocab.en}</strong>${vocab.note ? '<br>' + vocab.note : ''}</div>
+  `;
+  
+  // position
+  const rect = targetEl.getBoundingClientRect();
+  const popW = 320;
+  const top = rect.bottom + window.scrollY + 8;
+  let left = rect.left + window.scrollX + rect.width / 2 - popW / 2;
+  if (left < 12) left = 12;
+  if (left + popW > window.innerWidth - 12) left = window.innerWidth - popW - 12;
+  
+  popover.style.top = top + 'px';
+  popover.style.left = left + 'px';
+  popover.classList.add('visible');
+  popoverActive = true;
+}
+
+function hidePopover() {
+  popover.classList.remove('visible');
+  popoverActive = false;
+}
+
+document.addEventListener('click', (e) => {
+  if (popoverActive && !e.target.closest('.popover') && !e.target.closest('.cognate') && !e.target.closest('.false-friend')) {
+    hidePopover();
+  }
+});
+
+function attachInlineHandlers() {
+  document.querySelectorAll('.cognate, .false-friend').forEach(el => {
+    el.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const id = el.dataset.id;
+      const v = vocabById(id);
+      if (!v) return;
+      showPopover(el, v, el.classList.contains('cognate'));
+    });
+  });
+}
+
+/* ---------- FLASHCARD ---------- */
+
+function attachFlashcardHandlers() {
+  const card = document.getElementById('flashcard');
+  if (card) {
+    card.addEventListener('click', () => {
+      state.flashFlipped = !state.flashFlipped;
+      card.classList.toggle('flipped');
+    });
+  }
+  const prev = document.getElementById('fc-prev');
+  if (prev) prev.addEventListener('click', () => {
+    if (state.flashIndex > 0) {
+      state.flashIndex--;
+      state.flashFlipped = false;
+      renderContent();
+    }
+  });
+  const next = document.getElementById('fc-next');
+  if (next) next.addEventListener('click', () => {
+    if (state.flashIndex < VOCAB.length - 1) {
+      state.flashIndex++;
+      state.flashFlipped = false;
+      renderContent();
+    }
+  });
+}
+
+document.addEventListener('keydown', (e) => {
+  if (state.tab !== 'vocab') return;
+  if (document.body.dataset.state !== 'learner') return;
+  if (e.key === 'ArrowLeft' && state.flashIndex > 0) {
+    state.flashIndex--; state.flashFlipped = false; renderContent();
+  } else if (e.key === 'ArrowRight' && state.flashIndex < VOCAB.length - 1) {
+    state.flashIndex++; state.flashFlipped = false; renderContent();
+  } else if (e.key === ' ' || e.key === 'Enter') {
+    e.preventDefault();
+    state.flashFlipped = !state.flashFlipped;
+    const card = document.getElementById('flashcard');
+    if (card) card.classList.toggle('flipped');
+  }
+});
+
+/* ---------- DIALOGUE ---------- */
+
+function attachDialogueHandlers() {
+  document.querySelectorAll('.dialogue-pick-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      state.dialogueId = btn.dataset.dia;
+      renderContent();
+    });
+  });
+  document.querySelectorAll('.role-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      state.role = btn.dataset.role;
+      renderContent();
+    });
+  });
+}
+
+/* ---------- WIRING ---------- */
+
+function setMode(mode) {
+  state.mode = mode;
+  document.body.dataset.mode = mode;
+  document.body.dataset.state = 'learner';
+  state.flashIndex = 0;
+  state.flashFlipped = false;
+  renderModePill();
+  renderChapNav();
+  renderTabBar();
+  renderContent();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function init() {
+  // Landing language card buttons
+  document.querySelectorAll('.lang-card').forEach(card => {
+    card.addEventListener('click', () => setMode(card.dataset.lang));
+  });
+  
+  // Brand → back to landing
+  document.getElementById('brand-btn').addEventListener('click', () => {
+    document.body.dataset.state = 'landing';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+  
+  // Switch language button
+  document.getElementById('switch-btn').addEventListener('click', () => {
+    setMode(state.mode === 'id' ? 'tg' : 'id');
+  });
+  
+  // Tab buttons
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      state.tab = btn.dataset.tab;
+      renderTabBar();
+      renderContent();
+    });
+  });
+  
+  // Chapter nav (delegated since rendered dynamically)
+  document.getElementById('chap-nav').addEventListener('click', (e) => {
+    const btn = e.target.closest('.chap-btn');
+    if (!btn) return;
+    state.chapter = parseInt(btn.dataset.chap, 10);
+    renderChapNav();
+    state.tab = 'lesson';
+    renderTabBar();
+    renderContent();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+}
+
+init();
+</script>
+</body>
+</html>
