@@ -35,29 +35,44 @@
     --warning-bg: #F5DDD8;
     --warning-line: #DCA59A;
     
-    /* Mode accents */
-    --mode-id: #8B5A2B;       /* cinnamon - Indonesian */
-    --mode-id-soft: #C49264;
-    --mode-id-bg: #F3E4D0;
-    --mode-tg: #3D5A80;       /* indigo - Tagalog */
-    --mode-tg-soft: #7A93B4;
-    --mode-tg-bg: #DEE5F0;
+    /* Mode accents - cinnamon for Indonesian */
+    --mode: #8B5A2B;
+    --mode-soft: #C49264;
+    --mode-bg: #F3E4D0;
     
     /* Type */
     --serif: 'Fraunces', 'Times New Roman', serif;
     --sans: 'DM Sans', system-ui, sans-serif;
     --mono: 'JetBrains Mono', monospace;
-    
-    /* Active mode color (set by JS) */
-    --mode: var(--mode-id);
-    --mode-soft: var(--mode-id-soft);
-    --mode-bg: var(--mode-id-bg);
   }
   
+  /* TAGALOG - COOL BLUE PALETTE */
   body[data-mode="tg"] {
-    --mode: var(--mode-tg);
-    --mode-soft: var(--mode-tg-soft);
-    --mode-bg: var(--mode-tg-bg);
+    /* Cool blue palette */
+    --bg: #F0F4FB;
+    --bg-deeper: #E5EBF5;
+    --surface: #FAFBFE;
+    --surface-warm: #EFF3F9;
+    --ink: #1A2540;
+    --ink-soft: #3E4D6B;
+    --ink-faint: #6B7A96;
+    --line: #D5DFE8;
+    --line-soft: #E8EEF5;
+    
+    /* Accent for cognates - teal/cyan */
+    --cognate: #1B8A99;
+    --cognate-bg: #D0F1F6;
+    --cognate-line: #7FD4DF;
+    
+    /* Warning for false friends - coral/red */
+    --warning: #C44569;
+    --warning-bg: #F6DFE3;
+    --warning-line: #E5A8B8;
+    
+    /* Mode accent - cobalt for Tagalog */
+    --mode: #2C5AA0;
+    --mode-soft: #6B8FBD;
+    --mode-bg: #DDE8F5;
   }
   
   *, *::before, *::after { box-sizing: border-box; }
@@ -187,8 +202,8 @@
   
   .lang-card:hover::before { opacity: 0.06; }
   
-  .lang-card[data-lang="id"] { --accent: var(--mode-id); }
-  .lang-card[data-lang="tg"] { --accent: var(--mode-tg); }
+  .lang-card[data-lang="id"] { --accent: #8B5A2B; }
+  .lang-card[data-lang="tg"] { --accent: #2C5AA0; }
   
   .lang-card-tag {
     font-family: var(--mono);
@@ -261,6 +276,11 @@
     backdrop-filter: saturate(150%) blur(10px);
     -webkit-backdrop-filter: saturate(150%) blur(10px);
     border-bottom: 1px solid var(--line);
+    transition: background-color 0.3s;
+  }
+
+  body[data-mode="tg"] .top-bar {
+    background: rgba(240, 244, 251, 0.92);
   }
   
   .top-bar-inner {
@@ -2583,7 +2603,6 @@ function setMode(mode) {
   renderChapNav();
   renderTabBar();
   renderContent();
-  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 function init() {
