@@ -332,6 +332,11 @@ select:focus, input:focus { outline: 2px solid var(--mode-soft); outline-offset:
 .tw:hover{background:var(--mode-bg)}
 button.dx{cursor:pointer;font:inherit;color:inherit;text-align:left}
 button.dx:hover{border-color:var(--mode);background:var(--mode-bg)}
+#notepad{position:fixed;top:0;right:0;bottom:0;width:340px;background:var(--surface);border-left:1px solid var(--line);z-index:120;display:none;flex-direction:column;padding:1rem;box-shadow:-10px 0 30px -22px rgba(0,0,0,.35)}
+#notepad.open{display:flex}
+#notepad textarea{flex:1;width:100%;resize:none;font:inherit;line-height:1.55;padding:.7rem;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink)}
+@media(min-width:900px){body.notes-open{padding-right:360px}}
+@media(max-width:899px){#notepad{top:auto;left:0;width:auto;height:55vh;border-left:0;border-top:1px solid var(--line)}body.notes-open{padding-bottom:55vh}}
 </style>
 </head>
 <body data-mode="id" data-state="landing">
@@ -8505,10 +8510,11 @@ function fixProfile(x) {
   return x;
 }
 const SET0 = { speech: true, rate: 0.9, size: 100, fx: true, vb: true, sblang: 'mode', dict: false };
-let DB = { p: { id: newProfile(), tg: newProfile() }, last: '', custom: [], customS: [], set: {}, flags: {} };
+function fixNotes(n) { n = (n && typeof n === 'object') ? n : {}; return { id: typeof n.id === 'string' ? n.id : '', tg: typeof n.tg === 'string' ? n.tg : '' }; }
+let DB = { p: { id: newProfile(), tg: newProfile() }, last: '', custom: [], customS: [], set: {}, flags: {}, notes: { id: '', tg: '' } };
 try {
   const raw = localStorage.getItem(KEY);
-  if (raw) { const o = JSON.parse(raw); if (o && o.p) DB = { p: { id: fixProfile(o.p.id), tg: fixProfile(o.p.tg) }, last: o.last || '', custom: Array.isArray(o.custom) ? o.custom : [], customS: Array.isArray(o.customS) ? o.customS : [], set: (o.set && typeof o.set === 'object') ? o.set : {}, flags: (o.flags && typeof o.flags === 'object') ? o.flags : {} }; }
+  if (raw) { const o = JSON.parse(raw); if (o && o.p) DB = { p: { id: fixProfile(o.p.id), tg: fixProfile(o.p.tg) }, last: o.last || '', custom: Array.isArray(o.custom) ? o.custom : [], customS: Array.isArray(o.customS) ? o.customS : [], set: (o.set && typeof o.set === 'object') ? o.set : {}, flags: (o.flags && typeof o.flags === 'object') ? o.flags : {}, notes: fixNotes(o.notes) }; }
 } catch (e) { /* storage unavailable */ }
 function save() { try { localStorage.setItem(KEY, JSON.stringify(DB)); } catch (e) { /* ignore */ } }
 applyCustom();
@@ -8658,7 +8664,7 @@ function renderHdr() {
   $('switch-btn').textContent = 'Switch to ' + o;
 }
 function renderTabs() {
-  $('tabs').innerHTML = TABS.map(t => `<button class="tab-btn${VIEW === t[0] ? ' active' : ''}" data-act="tab" data-tab="${t[0]}" type="button">${t[1]}</button>`).join('') + '<button class="tab-btn" data-act="settings" type="button">⚙ Customize</button>';
+  $('tabs').innerHTML = TABS.map(t => `<button class="tab-btn${VIEW === t[0] ? ' active' : ''}" data-act="tab" data-tab="${t[0]}" type="button">${t[1]}</button>`).join('') + '<button class="tab-btn" data-act="settings" type="button">⚙ Customize</button><button class="tab-btn" data-act="notes" type="button">📝 Notes</button>';
 }
 
 /* ---------- views ---------- */
@@ -9329,7 +9335,7 @@ function doImport() {
   try {
     const o = JSON.parse($('mdata').value);
     if (!o || !o.p) throw new Error('bad');
-    DB = { p: { id: fixProfile(o.p.id), tg: fixProfile(o.p.tg) }, last: o.last || '', custom: Array.isArray(o.custom) ? o.custom : DB.custom, customS: Array.isArray(o.customS) ? o.customS : DB.customS, set: (o.set && typeof o.set === 'object') ? o.set : DB.set, flags: (o.flags && typeof o.flags === 'object') ? o.flags : DB.flags };
+    DB = { p: { id: fixProfile(o.p.id), tg: fixProfile(o.p.tg) }, last: o.last || '', custom: Array.isArray(o.custom) ? o.custom : DB.custom, customS: Array.isArray(o.customS) ? o.customS : DB.customS, set: (o.set && typeof o.set === 'object') ? o.set : DB.set, flags: (o.flags && typeof o.flags === 'object') ? o.flags : DB.flags, notes: o.notes ? fixNotes(o.notes) : DB.notes };
     applyCustom(); save(); closeModal(); render(); toast('Progress imported');
   } catch (x) { $('mmsg').textContent = 'That does not look like a valid backup.'; }
 }
@@ -9357,7 +9363,7 @@ function render() {
 }
 function setView(v) { if (v !== 'practice' || v === VIEW) clearSes(); if (v !== VIEW) { hidePop(); G = null; } VIEW = v; render(); }
 function landing() {
-  clearSes(); document.body.dataset.state = 'landing'; document.body.dataset.mode = 'id';
+  NOTES_OPEN = false; renderNotes(); clearSes(); document.body.dataset.state = 'landing'; document.body.dataset.mode = 'id';
   ['id', 'tg'].forEach(m => {
     const p = DB.p[m], saved = MODE; MODE = m;
     const c = counts(p), nm = TIER_NAMES[m][tierOf(p, c)]; MODE = saved;
@@ -9368,7 +9374,7 @@ function chooseMode(m) {
   clearSes(); MODE = m; OTHER = m === 'id' ? 'tg' : 'id'; DB.last = m;
   document.body.dataset.mode = m; document.body.dataset.state = 'learner';
   PF = { scope: 'all', dir: 'mixed' }; QZ = null; DS.rev = {}; SB = null; G = null;
-  D(); render(); save();
+  D(); render(); save(); renderNotes();
 }
 function switchLang() {
   const y = window.scrollY || 0;
@@ -9376,7 +9382,7 @@ function switchLang() {
   MODE = OTHER; OTHER = MODE === 'id' ? 'tg' : 'id'; DB.last = MODE;
   document.body.dataset.mode = MODE;
   PF = { scope: 'all', dir: 'mixed' }; QZ = null; DS.rev = {}; SB = null; G = null;
-  D(); render(); save();
+  D(); render(); save(); renderNotes();
   window.scrollTo && window.scrollTo(0, y);
 }
 
@@ -9494,6 +9500,7 @@ function showDx(el) {
   else if (g) h += `<div><b>${g.approx ? '≈ ' : ''}${esc(g.en)}</b></div><div class="faint" style="font-size:.78rem;margin-top:.3rem">${g.q ? 'Unsure gloss. ' : ''}Quick gloss, not dictionary-checked.</div>`;
   else h += `<div class="muted">Not in the word list yet. Flag the sentence if you want it added.</div>`;
   if (ents.length && !m[k]) h += '';
+  h += `<div style="margin-top:.5rem"><button class="btn small" data-act="noteadd" data-t="${esc(tok)}" data-l="${lang}" type="button">+ Notes</button></div>`;
   pop.className = 'popover cog'; pop.innerHTML = h;
   const r = el.getBoundingClientRect(), sx = window.scrollX || 0, sy = window.scrollY || 0;
   pop.style.top = (r.bottom + sy + 8) + 'px';
@@ -9711,6 +9718,43 @@ function viewGames() {
   <div class="row"><input type="text" id="swcode" value="${esc(SWC)}" style="max-width:12rem" aria-label="Deck code"><button class="btn primary" data-act="swgo" type="button">Start deck</button><button class="btn small" data-act="swtoday" type="button">Use today's date</button></div></div></div>`;
 }
 
+/* ---------- notepad ---------- */
+let NOTES_OPEN = false, NTM = null;
+function npEl() { let e = $('notepad'); if (!e) { e = document.createElement('div'); e.id = 'notepad'; document.body.appendChild(e); } return e; }
+function npCount(t) { const w = (t.trim().match(/\S+/g) || []).length; return w + (w === 1 ? ' word' : ' words'); }
+function renderNotes() {
+  const e = npEl();
+  if (!NOTES_OPEN) { e.className = ''; document.body.classList.remove('notes-open'); return; }
+  e.className = 'open'; document.body.classList.add('notes-open');
+  e.innerHTML = `<div class="row" style="align-items:baseline"><h3 style="margin:0;margin-right:auto">Notes · ${LN[MODE]}</h3><button class="btn small" data-act="notes" type="button">Close</button></div>
+  <p class="faint" style="font-size:.78rem;margin:.3rem 0 .6rem">One notepad per language. Saved in this browser and included in your backup file.</p>
+  <textarea id="npad" spellcheck="false" placeholder="Type notes here. Tap a word in a sentence while Dictionary is on and press + Notes to drop it in.">${esc(DB.notes[MODE])}</textarea>
+  <div class="row" style="margin-top:.6rem"><span class="faint" id="npcount" style="font-size:.78rem;margin-right:auto">${npCount(DB.notes[MODE])}</span><button class="btn small" data-act="npexport" type="button">Export .txt</button><button class="btn small" data-act="nppick" type="button">Import .txt</button><input type="file" id="npfile" accept=".txt,.md,text/plain" style="display:none"></div>
+  <div id="npmsg" class="muted" style="font-size:.8rem;margin-top:.4rem"></div>`;
+  const f = $('npfile');
+  if (f) f.addEventListener('change', () => { const fl = f.files && f.files[0]; if (!fl) return; const rd = new FileReader(); rd.onload = () => npImport(String(rd.result || '')); rd.readAsText(fl); });
+}
+function npMsg(m) { const e = $('npmsg'); if (e) e.textContent = m; }
+function npAppend(lang, line) {
+  const cur = DB.notes[lang]; DB.notes[lang] = cur + (cur && !/\n$/.test(cur) ? '\n' : '') + line + '\n'; save();
+  if (NOTES_OPEN && lang === MODE) { const t = $('npad'); if (t) { t.value = DB.notes[lang]; t.scrollTop = t.scrollHeight; } const c = $('npcount'); if (c) c.textContent = npCount(DB.notes[lang]); }
+}
+function npExport() {
+  const d = ymd(), body = '## Indonesian\n' + DB.notes.id.trim() + '\n\n## Filipino\n' + DB.notes.tg.trim() + '\n';
+  try {
+    const b = new Blob([body], { type: 'text/plain' }), a = document.createElement('a');
+    a.href = URL.createObjectURL(b); a.download = 'sambung-notes-' + d + '.txt'; document.body.appendChild(a); a.click();
+    setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500); npMsg('Saved sambung-notes-' + d + '.txt (both languages).');
+  } catch (x) { npMsg('Download was blocked.'); }
+}
+function npImport(txt) {
+  const m = txt.match(/^## Indonesian[ \t]*\n([\s\S]*?)(?:\n## Filipino[ \t]*\n([\s\S]*))?$/);
+  const add = (lang, t) => { t = (t || '').trim(); if (t) { DB.notes[lang] = (DB.notes[lang].trim() ? DB.notes[lang].replace(/\s+$/, '') + '\n\n' : '') + t + '\n'; } };
+  if (m) { add('id', m[1]); add('tg', m[2]); npMsg('Added to the end of both notepads.'); }
+  else { add(MODE, txt); npMsg('Added to the end of this notepad.'); }
+  save(); renderNotes();
+}
+
 /* ---------- events ---------- */
 document.addEventListener('click', e => {
   const t = e.target;
@@ -9787,6 +9831,10 @@ document.addEventListener('click', e => {
     case 'ddone': if (!p.dialogues[DS.id]) { p.dialogues[DS.id] = 1; toast('Dialogue practised (+20 XP)', 'gold'); gain(20); render(); } break;
     case 'data': openModal(); break;
     case 'settings': openSettings(); break;
+    case 'notes': NOTES_OPEN = !NOTES_OPEN; renderNotes(); break;
+    case 'npexport': npExport(); break;
+    case 'nppick': { const f = $('npfile'); if (f) f.click(); break; }
+    case 'noteadd': { const g = gloss(el.dataset.t, el.dataset.l), ent = (dix(el.dataset.l)[tokNorm(el.dataset.t)] || [])[0]; npAppend(el.dataset.l, el.dataset.t + ' — ' + (ent ? ent.en : g ? g.en : '?')); toast('Added to ' + LN[el.dataset.l] + ' notes'); break; }
     case 'speak': speak(el.dataset.t, el.dataset.l); break;
     case 'speaktest': speak(MODE === 'id' ? 'Apa kabar? Gue lagi belajar bahasa Indonesia.' : 'Kumusta ka? Nag-aaral ako ng Filipino.', MODE); break;
     case 'flag': { const k = el.dataset.k; if (DB.flags[k]) delete DB.flags[k]; else DB.flags[k] = 1; save(); if (VIEW === 'words') $('wlist').innerHTML = wlistHtml(); else render(); break; }
@@ -9860,6 +9908,7 @@ document.addEventListener('change', e => {
   else if (a === 'dtog') { DS[el.dataset.t] = el.checked; if (el.dataset.t === 'hide') DS.rev = {}; render(); }
 });
 document.addEventListener('input', e => {
+  if (e.target.id === 'npad') { DB.notes[MODE] = e.target.value; const c = $('npcount'); if (c) c.textContent = npCount(e.target.value); clearTimeout(NTM); NTM = setTimeout(save, 400); return; }
   if (e.target.id === 'wq') { WF.q = e.target.value; WF.n = 120; $('wlist').innerHTML = wlistHtml(); }
 });
 document.addEventListener('keydown', e => {
